@@ -1,0 +1,10 @@
+# Python virtual environment
+/venv/
+
+# Python
+__pycache__/
+
+# Packaging
+/*.egg-info/
+/build/
+/dist/
