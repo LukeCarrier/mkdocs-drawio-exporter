@@ -14,6 +14,8 @@ log = mkdocs.plugins.log.getChild('drawio-exporter')
 
 
 class DrawIoExporter(mkdocs.plugins.BasePlugin):
+    drawio_executable_names = ['drawio', 'draw.io']
+
     source_files = []
 
     config_scheme = (
@@ -32,12 +34,14 @@ class DrawIoExporter(mkdocs.plugins.BasePlugin):
             self.config['cache_dir'] = os.path.join(config['docs_dir'], self.config['cache_dir'])
         os.makedirs(self.config['cache_dir'], exist_ok=True)
 
+        for executable in self.drawio_executable_names:
+            if self.config['drawio_executable']:
+                break
+            self.config['drawio_executable'] = shutil.which(executable)
         if not self.config['drawio_executable']:
-            self.config['drawio_executable'] = shutil.which('draw.io')
-            if not self.config['drawio_executable']:
-                log.error('Unable to find draw.io executable; ensure it\'s on PATH or set drawio_executable option')
+            log.error('Unable to find Draw.io executable; ensure it\'s on PATH or set drawio_executable option')
 
-        log.debug('Using draw.io executable {} and cache directory {}'.format(
+        log.debug('Using Draw.io executable {} and cache directory {}'.format(
                 self.config['drawio_executable'], self.config['cache_dir']))
 
         self.image_re = re.compile('(<img[^>]+src=")([^">]+)("\s*\/?>)')
