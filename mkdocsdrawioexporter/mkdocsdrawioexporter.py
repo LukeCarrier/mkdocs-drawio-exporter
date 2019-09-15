@@ -71,15 +71,21 @@ class DrawIoExporter(mkdocs.plugins.BasePlugin):
             if os.path.exists(cache_filename) and os.path.getmtime(cache_filename) >= os.path.getmtime(f.abs_src_path):
                 log.debug('Source file appears unchanged; using cached copy from {}'.format(cache_filename))
             else:
-                cmd = [
-                    self.config['drawio_executable'],
-                    '--export', f.abs_src_path,
-                    '--output', cache_filename,
-                    '--format', self.config['format'],
-                ]
-                log.debug('Using export command {}'.format(cmd))
-
-                if subprocess.call(cmd) > 0:
-                    log.error('Failed to export {} with command {}'.format(f.src_path), cmd)
-
-            mkdocs.utils.copy_file(cache_filename, abs_dest_path)
+                try:
+                    cmd = [
+                        self.config['drawio_executable'],
+                        '--export', f.abs_src_path,
+                        '--output', cache_filename,
+                        '--format', self.config['format'],
+                    ]
+                    log.debug('Using export command {}'.format(cmd))
+                    exit_status = subprocess.call(cmd)
+                    if exit_status == 0:
+                        try:
+                            mkdocs.utils.copy_file(cache_filename, abs_dest_path)
+                        except FileNotFoundError:
+                            log.exception('Output file not created in cache')
+                    else:
+                        log.error('Export failed with exit status {}'.format(exit_status))
+                except:
+                    log.exception('Subprocess raised exception')
