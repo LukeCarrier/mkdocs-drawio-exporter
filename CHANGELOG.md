@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0:
+
+* Tighten up error handling around Draw.io execution
+
 ## 0.2.0: make it work everywhere
 
 * Locate `drawio` executable for non-Windows platforms

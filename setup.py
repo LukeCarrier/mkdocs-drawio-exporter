@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='mkdocs-drawio-exporter',
-    version='0.2.0',
+    version='0.3.0',
     packages=['mkdocsdrawioexporter'],
     url='https://github.com/LukeCarrier/mkdocs-drawio-exporter',
     license='MIT',
