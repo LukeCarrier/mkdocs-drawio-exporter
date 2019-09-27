@@ -70,6 +70,7 @@ class DrawIoExporter(mkdocs.plugins.BasePlugin):
             cache_filename = os.path.join(self.config['cache_dir'], hashlib.sha1(f.src_path.encode('utf-8')).hexdigest())
             if os.path.exists(cache_filename) and os.path.getmtime(cache_filename) >= os.path.getmtime(f.abs_src_path):
                 log.debug('Source file appears unchanged; using cached copy from {}'.format(cache_filename))
+                mkdocs.utils.copy_file(cache_filename, abs_dest_path)
             else:
                 try:
                     cmd = [
