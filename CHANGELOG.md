@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.0:
+## 0.3.0: fix some stuff
 
 * Tighten up error handling around Draw.io execution
 
