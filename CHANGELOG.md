@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1: fix some more stuff
+
+* Actually copy the cached file when we say we will
+
 ## 0.3.0: fix some stuff
 
 * Tighten up error handling around Draw.io execution
