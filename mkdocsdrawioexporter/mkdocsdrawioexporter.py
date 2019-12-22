@@ -27,24 +27,44 @@ class DrawIoExporter(mkdocs.plugins.BasePlugin):
 
     image_re = None
 
+    def prepare_cache_dir(self, cache_dir, docs_dir):
+        """Ensure the cache path is set, absolute and exists.
+
+        :param str cache_dir: Configured cache directory.
+        :param str docs_dir: Docs directory, in which to base relative cache directories.
+        :return str: Final cache directory.
+        """
+        if not cache_dir:
+           cache_dir = 'drawio-exporter'
+        if not os.path.isabs(cache_dir):
+            cache_dir = os.path.join(docs_dir, cache_dir)
+        os.makedirs(cache_dir, exist_ok=True)
+        return cache_dir
+
+    def prepare_drawio_executable(self, executable):
+        """Ensure the Draw.io executable path is configured, or guess it.
+
+        :param str executable: Configured Draw.io executable.
+        :return str: Final Draw.io executable.
+        """
+        for name in self.drawio_executable_names:
+            executable = shutil.which(name)
+            if executable:
+                log.debug('Found Draw.io executable "{}" at "{}"'.format(name, executable))
+                return executable
+
+        log.error('Unable to find Draw.io executable; ensure it\'s on PATH or set drawio_executable option')
+
     def on_config(self, config):
-        if not self.config['cache_dir']:
-            self.config['cache_dir'] = 'drawio-exporter'
-        if not os.path.isabs(self.config['cache_dir']):
-            self.config['cache_dir'] = os.path.join(config['docs_dir'], self.config['cache_dir'])
-        os.makedirs(self.config['cache_dir'], exist_ok=True)
-
-        for executable in self.drawio_executable_names:
-            if self.config['drawio_executable']:
-                break
-            self.config['drawio_executable'] = shutil.which(executable)
-        if not self.config['drawio_executable']:
-            log.error('Unable to find Draw.io executable; ensure it\'s on PATH or set drawio_executable option')
-
-        log.debug('Using Draw.io executable {} and cache directory {}'.format(
-                self.config['drawio_executable'], self.config['cache_dir']))
+        self.config['cache_dir'] = self.prepare_cache_dir(
+                self.config['cache_dir'], config['docs_dir'])
+        self.config['drawio_executable'] = self.prepare_drawio_executable(
+                self.config['drawio_executable'])
 
         self.image_re = re.compile('(<img[^>]+src=")([^">]+)("\s*\/?>)')
+
+        log.debug('Using Draw.io executable "{}" and cache directory "{}"'.format(
+                self.config['drawio_executable'], self.config['cache_dir']))
 
     def on_post_page(self, output_content, **kwargs):
         def replace(match):
