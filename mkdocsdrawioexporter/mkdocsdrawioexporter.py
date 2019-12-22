@@ -47,6 +47,10 @@ class DrawIoExporter(mkdocs.plugins.BasePlugin):
         :param str executable: Configured Draw.io executable.
         :return str: Final Draw.io executable.
         """
+        if executable and not os.path.isfile(executable):
+            log.error('Configured Draw.io executable "{}" doesn\'t exist', executable)
+            return
+
         for name in self.drawio_executable_names:
             executable = shutil.which(name)
             if executable:
@@ -91,6 +95,8 @@ class DrawIoExporter(mkdocs.plugins.BasePlugin):
             if os.path.exists(cache_filename) and os.path.getmtime(cache_filename) >= os.path.getmtime(f.abs_src_path):
                 log.debug('Source file appears unchanged; using cached copy from {}'.format(cache_filename))
                 mkdocs.utils.copy_file(cache_filename, abs_dest_path)
+            elif not self.config['drawio_executable']:
+                log.warn('Skipping build of "{}" as Draw.io executable not on path'.format(f.src_path))
             else:
                 try:
                     cmd = [

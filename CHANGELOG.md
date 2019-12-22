@@ -1,5 +1,9 @@
 # Changelog
 
+# 0.4.0: Merry Christmas
+
+* Better handle missing `draw.io` binary
+
 ## 0.3.1: fix some more stuff
 
 * Actually copy the cached file when we say we will
