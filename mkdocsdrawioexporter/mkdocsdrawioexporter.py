@@ -4,6 +4,7 @@ import os.path
 import re
 import shutil
 import subprocess
+import sys
 
 import mkdocs
 import mkdocs.plugins
@@ -26,6 +27,20 @@ class DrawIoExporter(mkdocs.plugins.BasePlugin):
     )
 
     image_re = None
+
+    def drawio_executable_paths(self, platform):
+        """Get the Draw.io executable paths for the platform.
+
+        :param str platform: sys.platform.
+        :return list(str): All known paths.
+        """
+        if platform == 'win32':
+            program_files = [os.environ['ProgramFiles']]
+            if 'ProgramFiles(x86)' in os.environ:
+                program_files.append('ProgramFiles(x86)')
+            return [os.path.join(dir, 'draw.io', 'draw.io.exe') for dir in program_files]
+        else:
+            log.warn('Draw.io executable paths not known for platform "{}"'.format(platform))
 
     def prepare_cache_dir(self, cache_dir, docs_dir):
         """Ensure the cache path is set, absolute and exists.
@@ -56,6 +71,14 @@ class DrawIoExporter(mkdocs.plugins.BasePlugin):
             if executable:
                 log.debug('Found Draw.io executable "{}" at "{}"'.format(name, executable))
                 return executable
+
+        candidates = self.drawio_executable_paths(sys.platform)
+        log.debug('Trying paths {} for platform "{}"'.format(candidates, sys.platform))
+        for candidate in candidates:
+            if os.path.isfile(candidate):
+                log.debug('Found Draw.io executable for platform "{}" at "{}"'.format(
+                        sys.platform, candidate))
+                return candidate
 
         log.error('Unable to find Draw.io executable; ensure it\'s on PATH or set drawio_executable option')
 

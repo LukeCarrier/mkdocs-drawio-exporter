@@ -2,6 +2,7 @@
 
 # 0.4.0: Merry Christmas
 
+* Locate `draw.io` binary on `PATH` based on platform
 * Better handle missing `draw.io` binary
 
 ## 0.3.1: fix some more stuff
