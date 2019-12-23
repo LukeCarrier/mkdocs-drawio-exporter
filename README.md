@@ -47,11 +47,19 @@ $ . venv/bin/activate
 $ pip install -r requirements.txt
 ```
 
+Install and build the Webpack assets:
+
+```
+$ python3 setup.py develop
+```
+
 To install the plugin onto a local MkDocs site in editable form:
 
 ```
 $ pip install --editable /path/to/mkdocs-drawio-exporter
 ```
+
+Note that you'll need to repeat this step if you make any changes to the `entry_points` listed in `setup.py`.
 
 ## Releasing
 
