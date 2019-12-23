@@ -41,6 +41,8 @@ class DrawIoExporter(mkdocs.plugins.BasePlugin):
             ]
             drawio_path = os.path.join('draw.io.app', 'Contents', 'MacOS', 'draw.io')
             return [os.path.join(dir, drawio_path) for dir in applications]
+        elif platform.startswith('linux'):
+            return ['/opt/draw.io/drawio']
         elif platform == 'win32':
             program_files = [os.environ['ProgramFiles']]
             if 'ProgramFiles(x86)' in os.environ:
