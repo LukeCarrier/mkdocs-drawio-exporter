@@ -1,1 +1,2 @@
-from .mkdocsdrawioexporter import DrawIoExporter
+from .exporter import DrawIoExporter
+from .plugin import DrawIoExporterPlugin

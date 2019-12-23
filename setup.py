@@ -21,7 +21,7 @@ setup(
 
     entry_points={
         'mkdocs.plugins': [
-            'drawio-exporter = mkdocsdrawioexporter:DrawIoExporter',
+            'drawio-exporter = mkdocsdrawioexporter:DrawIoExporterPlugin',
         ],
     },
 )
