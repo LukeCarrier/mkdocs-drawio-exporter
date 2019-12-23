@@ -34,7 +34,14 @@ class DrawIoExporter(mkdocs.plugins.BasePlugin):
         :param str platform: sys.platform.
         :return list(str): All known paths.
         """
-        if platform == 'win32':
+        if platform == 'darwin':
+            applications = [
+                os.path.expanduser('~/Applications'),
+                '/Applications',
+            ]
+            drawio_path = os.path.join('draw.io.app', 'Contents', 'MacOS', 'draw.io')
+            return [os.path.join(dir, drawio_path) for dir in applications]
+        elif platform == 'win32':
             program_files = [os.environ['ProgramFiles']]
             if 'ProgramFiles(x86)' in os.environ:
                 program_files.append('ProgramFiles(x86)')
