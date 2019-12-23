@@ -61,6 +61,12 @@ $ pip install --editable /path/to/mkdocs-drawio-exporter
 
 Note that you'll need to repeat this step if you make any changes to the `entry_points` listed in `setup.py`.
 
+Run the tests with the Python `unittest` module:
+
+```
+$ python -m unittest mkdocsdrawioexporter.tests
+```
+
 ## Releasing
 
 Build the distributable package:
