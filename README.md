@@ -36,6 +36,22 @@ plugins:
         sources: '*.drawio'
 ```
 
+## Usage
+
+With the plugin configured, you can now proceed to embed images by simply embedding the `*.drawio` diagram file as you would with any image file:
+
+```markdown
+![My alt text](my-diagram.drawio)
+```
+
+If you're working with multi-page documents, append the index of the page as an anchor in the URL:
+
+```markdown
+![Page 1](my-diagram.drawio#0)
+```
+
+The plugin will export the diagram to the `format` specified in your configuration and will rewrite the `<img>` tag in the generated page to match. To speed up your documentation rebuilds, the generated output will be placed into `cache_dir` and then copied to the desired destination. The cached images will only be updated if the source diagram's modification date is newer than the cached export.
+
 ## Hacking
 
 To get completion working in your editor, set up a virtual environment in the root of this repository and install MkDocs:

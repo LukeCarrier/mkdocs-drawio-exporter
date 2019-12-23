@@ -4,6 +4,7 @@
 
 * Locate `draw.io` binary on `PATH` based on platform
 * Better handle missing `draw.io` binary
+* Added support for multi-page documents
 * Clean up the code and write some unit tests
 
 ## 0.3.1: fix some more stuff

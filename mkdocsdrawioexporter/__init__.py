@@ -1,2 +1,2 @@
-from .exporter import DrawIoExporter
+from .exporter import DrawIoExporter, Source
 from .plugin import DrawIoExporterPlugin

@@ -6,6 +6,61 @@ import subprocess
 import sys
 
 
+class Source:
+    """Diagram source.
+
+    Sources are pairs of filenames and page indices which can be exported to
+    produce a static image. The relative path of the source within the
+    documentation directory must be resolved after instantiation due to MkDocs's
+    design.
+    """
+
+    source_embed = None
+    """Path of the embedded resource, relative to parent page.
+
+    :type: str
+    """
+
+    source_rel = None
+    """Path of the source, relative to the documentation directory.
+
+    :type: str
+    """
+
+    page_index = None
+    """Page index within the document.
+
+    :type: int"""
+
+    def __init__(self, source_embed, page_index):
+        """Initialise a Source.
+
+        :param str source_embed: Path of the embedded resource.
+        :param int page_index: Page index within the document.
+        """
+        self.source_embed = source_embed
+        self.page_index = page_index
+
+    def __eq__(self, other):
+        return self.source_rel == other.source_rel \
+                and self.page_index == other.page_index
+
+    def __hash__(self):
+        return hash((
+            'source_rel', self.source_rel,
+            'page_index', self.page_index,
+        ))
+
+    def resolve_rel_path(self, page_dest_path):
+        """Resolve the path of the source, relative to the documentation directory.
+
+        :param str page_dest_path: The destination path of the parent page.
+        """
+        self.source_rel = os.path.normpath(os.path.join(
+                os.path.dirname(page_dest_path),
+                self.source_embed))
+
+
 class DrawIoExporter:
     """Draw.io Exporter.
 
@@ -105,21 +160,25 @@ class DrawIoExporter:
         :param str format: Desired export format.
         :return str: Rewritten content.
         """
+        content_sources = []
+
         def replace(match):
-            if fnmatch.fnmatch(match.group(2), sources):
-                return '{}{}.{}{}'.format(match.group(1), match.group(2), format, match.group(3))
+            try:
+                filename, page_index = match.group(2).rsplit('#', 1)
+            except ValueError:
+                filename = match.group(2)
+                page_index = 0
+
+            if fnmatch.fnmatch(filename, sources):
+                content_sources.append(Source(filename, page_index))
+
+                return '{}{}-{}.{}{}'.format(
+                        match.group(1), filename, page_index, format, match.group(3))
             else:
                 return match.group(0)
-        return image_re.sub(replace, output_content)
+        output_content = image_re.sub(replace, output_content)
 
-    def match_source_files(self, files, sources):
-        """Locate files matching the source glob.
-
-        :param list(mkdocs.structure.File) files: Files to filter.
-        :param str sources: Sources glob to filter by.
-        :return list(mkdocs.structure.File): Filtered files.
-        """
-        return [f for f in files if fnmatch.fnmatch(f.src_path, sources)]
+        return (output_content, content_sources)
 
     def filter_cache_files(self, files, cache_dir):
         """Remove cache files from the generated output.
@@ -130,11 +189,12 @@ class DrawIoExporter:
         """
         return [f for f in files if not f.abs_src_path.startswith(cache_dir)]
 
-    def ensure_file_cached(self, source, source_rel, drawio_executable, cache_dir, format):
+    def ensure_file_cached(self, source, source_rel, page_index, drawio_executable, cache_dir, format):
         """Ensure cached copy of output exists.
 
         :param str source: Source path, absolute.
         :param str source_rel: Source path, relative to docs directory.
+        :param int page_index: Page index, numbered from zero.
         :param str drawio_executable: Path to the configured Draw.io executable.
         :param str cache_dir: Export cache directory.
         :param str format: Desired export format.
@@ -144,26 +204,29 @@ class DrawIoExporter:
             self.log.warn('Skipping build of "{}" as Draw.io executable not available'.format(source))
             return
 
-        cache_filename = self.make_cache_filename(source_rel, cache_dir)
+        cache_filename = self.make_cache_filename(source_rel, page_index, cache_dir)
         if self.use_cached_file(source, cache_filename):
             self.log.debug('Source file appears unchanged; using cached copy from "{}"'.format(cache_filename))
         else:
             self.log.debug('Exporting "{}" to "{}"'.format(source, cache_filename))
-            exit_status = self.export_file(source, cache_filename, drawio_executable, format)
+            exit_status = self.export_file(source, page_index, cache_filename, drawio_executable, format)
             if exit_status != 0:
                 self.log.error('Export failed with exit status {}'.format(exit_status))
                 return
 
         return cache_filename
 
-    def make_cache_filename(self, source, cache_dir):
+    def make_cache_filename(self, source, page_index, cache_dir):
         """Make the cached filename.
 
         :param str source: Source path, relative to the docs directory.
+        :param int page_index: Page index, numbered from zero.
         :param str cache_dir: Export cache directory.
         :return str: Resulting filename.
         """
-        return os.path.join(cache_dir, hashlib.sha1(source.encode('utf-8')).hexdigest())
+        basename = '{}-{}'.format(
+                hashlib.sha1(source.encode('utf-8')).hexdigest(), page_index)
+        return os.path.join(cache_dir, basename)
 
     def use_cached_file(self, source, cache_filename):
         """Is the cached copy up to date?
@@ -175,10 +238,11 @@ class DrawIoExporter:
         return os.path.exists(cache_filename) \
                 and os.path.getmtime(cache_filename) >= os.path.getmtime(source)
 
-    def export_file(self, source, dest, drawio_executable, format):
+    def export_file(self, source, page_index, dest, drawio_executable, format):
         """Export an individual file.
 
         :param str source: Source path, absolute.
+        :param int page_index: Page index, numbered from zero.
         :param str dest: Destination path, within cache.
         :param str drawio_executable: Path to the configured Draw.io executable.
         :param str format: Desired export format.
@@ -187,6 +251,7 @@ class DrawIoExporter:
         cmd = [
             drawio_executable,
             '--export', source,
+            '--page-index', str(page_index),
             '--output', dest,
             '--format', format,
         ]

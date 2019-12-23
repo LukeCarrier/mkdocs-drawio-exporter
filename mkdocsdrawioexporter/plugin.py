@@ -8,7 +8,7 @@ import mkdocs.plugins
 from mkdocs.structure.files import Files
 from mkdocs.utils import copy_file, string_types
 
-from .exporter import DrawIoExporter
+from .exporter import DrawIoExporter, Source
 
 
 log = mkdocs.plugins.log.getChild('drawio-exporter')
@@ -31,7 +31,7 @@ class DrawIoExporterPlugin(mkdocs.plugins.BasePlugin):
 
     exporter = None
 
-    source_files = []
+    sources = []
     image_re = None
 
     def on_config(self, config):
@@ -49,27 +49,37 @@ class DrawIoExporterPlugin(mkdocs.plugins.BasePlugin):
         log.debug('Using Draw.io executable "{}", cache directory "{}" and image regular expression "{}"'.format(
                 self.config['drawio_executable'], self.config['cache_dir'], self.config['image_re']))
 
-    def on_post_page(self, output_content, **kwargs):
-        return self.exporter.rewrite_image_embeds(
+    def on_post_page(self, output_content, page, **kwargs):
+        output_content, content_sources = self.exporter.rewrite_image_embeds(
                 output_content, self.image_re, self.config['sources'],
                 self.config['format'])
 
-    def on_files(self, files, config):
-        self.source_files = self.exporter.match_source_files(files, self.config['sources'])
-        log.debug('Found {} source files matching glob "{}"'.format(
-                len(self.source_files), self.config['sources']))
+        for source in content_sources:
+            source.resolve_rel_path(page.file.dest_path)
+        self.sources += content_sources
 
+        return output_content
+
+    def on_files(self, files, config):
         keep = self.exporter.filter_cache_files(files, self.config['cache_dir'])
         log.debug('{} files left after excluding cache'.format(len(keep)))
 
         return Files(keep)
 
     def on_post_build(self, config):
-        for f in self.source_files:
-            abs_dest_path = f.abs_dest_path + '.' + self.config['format']
+        sources = set(self.sources)
+        log.debug('Found {} unique sources in {} total embeds'.format(len(sources), len(self.sources)))
+        self.sources = []
+
+        for source in sources:
+            dest_rel_path = '{}-{}.{}'.format(
+                    source.source_rel, source.page_index, self.config['format'])
+            abs_src_path = os.path.join(config['docs_dir'], source.source_rel)
+            abs_dest_path = os.path.join(config['site_dir'], dest_rel_path)
             cache_filename = self.exporter.ensure_file_cached(
-                    f.abs_src_path, f.src_path, self.config['drawio_executable'],
-                    self.config['cache_dir'], self.config['format'])
+                    abs_src_path, source.source_rel, source.page_index,
+                    self.config['drawio_executable'], self.config['cache_dir'],
+                    self.config['format'])
 
             try:
                 copy_file(cache_filename, abs_dest_path)
