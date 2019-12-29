@@ -21,14 +21,20 @@ plugins:
 
 ## Configuration
 
+The values below are the defaults -- this section is optional and can be omitted if they work for you.
+
 ```yaml
 plugins:
     - drawio-exporter:
         # Diagrams are cached to speed up site generation. The default path is
         # drawio-exporter, relative to the documentation directory.
         cache_dir: 'drawio-exporter'
-        # Path to draw.io or draw.io.exe. Will be determined from the PATH
-        # environment variable if not specified.
+        # Path to the Draw.io executable:
+        #   * drawio on Linux
+        #   * draw.io on macOS
+        #   * or draw.io.exe on Windows
+        # We'll look for it on your system's PATH, then default installation
+        # paths. If we can't find it we'll warn you.
         drawio_executable: null
         # Output format (see draw.io --help | grep format)
         format: svg
