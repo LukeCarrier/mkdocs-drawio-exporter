@@ -6,7 +6,7 @@ import mkdocs
 from mkdocs.config import config_options
 import mkdocs.plugins
 from mkdocs.structure.files import Files
-from mkdocs.utils import copy_file, string_types
+from mkdocs.utils import copy_file
 
 from .exporter import DrawIoExporter, Source
 
@@ -22,11 +22,11 @@ class DrawIoExporterPlugin(mkdocs.plugins.BasePlugin):
     """
 
     config_scheme = (
-        ('cache_dir', config_options.Type(string_types)),
-        ('drawio_executable', config_options.Type(string_types)),
-        ('format', config_options.Type(string_types, default='svg')),
-        ('image_re', config_options.Type(string_types, default='(<img[^>]+src=")([^">]+)("\s*\/?>)')),
-        ('sources', config_options.Type(string_types, default='*.drawio')),
+        ('cache_dir', config_options.Type(str)),
+        ('drawio_executable', config_options.Type(str)),
+        ('format', config_options.Type(str, default='svg')),
+        ('image_re', config_options.Type(str, default='(<img[^>]+src=")([^">]+)("\s*\/?>)')),
+        ('sources', config_options.Type(str, default='*.drawio')),
     )
 
     exporter = None

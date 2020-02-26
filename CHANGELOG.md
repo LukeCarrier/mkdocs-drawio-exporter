@@ -3,6 +3,7 @@
 ## 0.5.0: support MkDocs 1.1
 
 * Make dependency upgrades a little easier
+* Drop Python 2.7 support
 
 ## 0.4.0: Merry Christmas
 
