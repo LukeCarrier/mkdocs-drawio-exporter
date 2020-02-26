@@ -1,0 +1,7 @@
+colorclass==2.2.0
+docopt==0.6.2
+packaging==20.1
+pip-upgrader==1.4.15
+pyparsing==2.4.6
+terminaltables==3.1.0
+-r requirements.txt

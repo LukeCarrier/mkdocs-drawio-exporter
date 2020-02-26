@@ -89,6 +89,21 @@ Run the tests with the Python `unittest` module:
 $ python -m unittest mkdocsdrawioexporter.tests
 ```
 
+## Upgrading dependencies
+
+To upgrade the dependencies, install `pip-upgrader`:
+
+```console
+. venv/bin/activate
+pip install -r requirements.dev.txt
+```
+
+Then proceed to update the dependencies:
+
+```console
+pip-upgrade requirements.dev.txt
+```
+
 ## Releasing
 
 Build the distributable package:
