@@ -1,6 +1,10 @@
 # Changelog
 
-# 0.4.0: Merry Christmas
+## 0.5.0: support MkDocs 1.1
+
+* Make dependency upgrades a little easier
+
+## 0.4.0: Merry Christmas
 
 * Locate `draw.io` binary on `PATH` based on platform
 * Better handle missing `draw.io` binary
