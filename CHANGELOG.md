@@ -3,6 +3,7 @@
 ## 0.6.0: ease containerisation
 
 * New `drawio_args` option allows passing additional args to the Draw.io CLI
+* Improve handling of cases where Draw.io reports a successful export but doesn't write an output file
 
 ## 0.5.0: support MkDocs 1.1
 

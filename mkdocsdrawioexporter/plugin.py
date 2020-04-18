@@ -78,12 +78,16 @@ class DrawIoExporterPlugin(mkdocs.plugins.BasePlugin):
                     source.source_rel, source.page_index, self.config['format'])
             abs_src_path = os.path.join(config['docs_dir'], source.source_rel)
             abs_dest_path = os.path.join(config['site_dir'], dest_rel_path)
-            cache_filename = self.exporter.ensure_file_cached(
+            cache_filename, exit_status = self.exporter.ensure_file_cached(
                     abs_src_path, source.source_rel, source.page_index,
                     self.config['drawio_executable'], self.config['drawio_args'],
                     self.config['cache_dir'], self.config['format'])
 
+            if exit_status != 0:
+                log.error('Export failed with exit status {}; skipping copy'.format(exit_status))
+                continue
+
             try:
                 copy_file(cache_filename, abs_dest_path)
             except FileNotFoundError:
-                log.exception('Output file not created in cache')
+                log.warn('Export successful, but wrote no output file')

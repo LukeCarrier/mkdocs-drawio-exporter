@@ -109,9 +109,10 @@ class ExporterTests(unittest.TestCase):
         self.exporter.export_file = MagicMock()
         self.exporter.export_file.return_value = 0
 
-        result = self.exporter.ensure_file_cached(
+        cache_filename, exit_status = self.exporter.ensure_file_cached(
                 source, source_rel, 0, drawio_executable, [], cache_dir, 'svg')
-        assert result == self.exporter.make_cache_filename.return_value
+        assert cache_filename == self.exporter.make_cache_filename.return_value
+        assert exit_status == 0
 
     def test_ensure_file_cached_aborts_if_drawio_executable_unavailable(self):
         source = sep + join('docs', 'diagram.drawio')
@@ -124,10 +125,10 @@ class ExporterTests(unittest.TestCase):
 
         self.log.warn = MagicMock()
 
-        result = self.exporter.ensure_file_cached(
+        cache_filename, exit_status = self.exporter.ensure_file_cached(
                 source, source_rel, 0, drawio_executable, [], cache_dir, 'svg')
 
-        assert result == None
+        assert exit_status == None
         self.log.warn.assert_called_once()
 
     def test_ensure_file_cached_skips_export_if_cache_fresh(self):
@@ -145,14 +146,15 @@ class ExporterTests(unittest.TestCase):
         self.exporter.export_file = MagicMock()
         self.exporter.export_file.return_value = 0
 
-        result = self.exporter.ensure_file_cached(
+        cache_filename, exit_status = self.exporter.ensure_file_cached(
                 source, source_rel, 0, drawio_executable, [], cache_dir, 'svg')
 
-        assert result == self.exporter.make_cache_filename.return_value
+        assert cache_filename == self.exporter.make_cache_filename.return_value
+        assert exit_status == None
         self.exporter.use_cached_file.assert_called_once()
         assert not self.exporter.export_file.called
 
-    def test_ensure_file_cached_logs_error_if_export_fails(self):
+    def test_ensure_file_cached_returns_exit_status_if_non_zero(self):
         source = sep + join('docs', 'diagram.drawio')
         source_rel = 'diagram.drawio'
         drawio_executable = sep + join('bin', 'drawio')
@@ -169,11 +171,10 @@ class ExporterTests(unittest.TestCase):
 
         self.log.error = MagicMock()
 
-        result = self.exporter.ensure_file_cached(
+        cache_filename, exit_status = self.exporter.ensure_file_cached(
                 source, source_rel, 0, drawio_executable, [], cache_dir, 'svg')
 
-        assert result == None
-        self.log.error.assert_called_once()
+        assert exit_status == 1
 
     def test_make_cache_filename(self):
         cache_dir = sep + 'docs'

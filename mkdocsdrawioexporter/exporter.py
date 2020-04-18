@@ -199,13 +199,15 @@ class DrawIoExporter:
         :param list(str) drawio_args: Additional arguments to append to the Draw.io export command.
         :param str cache_dir: Export cache directory.
         :param str format: Desired export format.
-        :return str: Cached export filename.
+        :return tuple(str, int): Cached export filename.
         """
+        cache_filename = self.make_cache_filename(source_rel, page_index, cache_dir)
+        exit_status = None
+
         if not drawio_executable:
             self.log.warn('Skipping build of "{}" as Draw.io executable not available'.format(source))
-            return
+            return (cache_filename, exit_status)
 
-        cache_filename = self.make_cache_filename(source_rel, page_index, cache_dir)
         if self.use_cached_file(source, cache_filename):
             self.log.debug('Source file appears unchanged; using cached copy from "{}"'.format(cache_filename))
         else:
@@ -213,11 +215,8 @@ class DrawIoExporter:
             exit_status = self.export_file(
                     source, page_index, cache_filename,
                     drawio_executable, drawio_args, format)
-            if exit_status != 0:
-                self.log.error('Export failed with exit status {}'.format(exit_status))
-                return
 
-        return cache_filename
+        return (cache_filename, exit_status)
 
     def make_cache_filename(self, source, page_index, cache_dir):
         """Make the cached filename.
