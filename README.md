@@ -60,6 +60,39 @@ If you're working with multi-page documents, append the index of the page as an 
 
 The plugin will export the diagram to the `format` specified in your configuration and will rewrite the `<img>` tag in the generated page to match. To speed up your documentation rebuilds, the generated output will be placed into `cache_dir` and then copied to the desired destination. The cached images will only be updated if the source diagram's modification date is newer than the cached export.
 
+### Headless usage
+
+In addition to the above, if you're running in a headless environment (e.g. in integration, or inside a Docker container), you may need to ensure a display server is running and that the necessary dependencies are installed.
+
+On Debian and Ubuntu, the following should install the dependencies:
+
+```console
+sudo apt install libasound2 xvfb
+```
+
+To run MkDocs with an automatically assigned X display, wrap the command as follows:
+
+```console
+xvfb-run -a mkdocs build
+```
+
+### Running without the sandbox
+
+If you're seeing messages like the following it's likely that you're running MkDocs as root:
+
+```text
+[22:0418/231827.169035:FATAL:electron_main_delegate.cc(211)] Running as root without --no-sandbox is not supported. See https://crbug.com/638180.
+```
+
+If possible, consider running MkDocs as a non-privileged user. Depending on the circumstances (e.g. running within an unprivilegedcontainer) it may be appropriate to disable the Chrome sandbox by adding the following option to `mkdocs.yml`:
+
+```yaml
+plugins:
+    - drawio-exporter:
+        drawio_args:
+            - --no-sandbox
+```
+
 ## Hacking
 
 To get completion working in your editor, set up a virtual environment in the root of this repository and install MkDocs:
