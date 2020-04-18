@@ -69,12 +69,6 @@ $ . venv/bin/activate
 $ pip install -r requirements.txt
 ```
 
-Install and build the Webpack assets:
-
-```
-$ python3 setup.py develop
-```
-
 To install the plugin onto a local MkDocs site in editable form:
 
 ```
