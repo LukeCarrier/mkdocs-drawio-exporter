@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.0: ease containerisation
+
+* New `drawio_args` option allows passing additional args to the Draw.io CLI
+
 ## 0.5.0: support MkDocs 1.1
 
 * Make dependency upgrades a little easier

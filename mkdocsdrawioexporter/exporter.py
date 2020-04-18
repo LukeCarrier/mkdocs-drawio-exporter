@@ -189,13 +189,14 @@ class DrawIoExporter:
         """
         return [f for f in files if not f.abs_src_path.startswith(cache_dir)]
 
-    def ensure_file_cached(self, source, source_rel, page_index, drawio_executable, cache_dir, format):
+    def ensure_file_cached(self, source, source_rel, page_index, drawio_executable, drawio_args, cache_dir, format):
         """Ensure cached copy of output exists.
 
         :param str source: Source path, absolute.
         :param str source_rel: Source path, relative to docs directory.
         :param int page_index: Page index, numbered from zero.
         :param str drawio_executable: Path to the configured Draw.io executable.
+        :param list(str) drawio_args: Additional arguments to append to the Draw.io export command.
         :param str cache_dir: Export cache directory.
         :param str format: Desired export format.
         :return str: Cached export filename.
@@ -209,7 +210,9 @@ class DrawIoExporter:
             self.log.debug('Source file appears unchanged; using cached copy from "{}"'.format(cache_filename))
         else:
             self.log.debug('Exporting "{}" to "{}"'.format(source, cache_filename))
-            exit_status = self.export_file(source, page_index, cache_filename, drawio_executable, format)
+            exit_status = self.export_file(
+                    source, page_index, cache_filename,
+                    drawio_executable, drawio_args, format)
             if exit_status != 0:
                 self.log.error('Export failed with exit status {}'.format(exit_status))
                 return
@@ -238,13 +241,14 @@ class DrawIoExporter:
         return os.path.exists(cache_filename) \
                 and os.path.getmtime(cache_filename) >= os.path.getmtime(source)
 
-    def export_file(self, source, page_index, dest, drawio_executable, format):
+    def export_file(self, source, page_index, dest, drawio_executable, drawio_args, format):
         """Export an individual file.
 
         :param str source: Source path, absolute.
         :param int page_index: Page index, numbered from zero.
         :param str dest: Destination path, within cache.
         :param str drawio_executable: Path to the configured Draw.io executable.
+        :param list(str) drawio_args: Additional arguments to append to the Draw.io export command.
         :param str format: Desired export format.
         :return int: The Draw.io exit status.
         """
@@ -255,6 +259,7 @@ class DrawIoExporter:
             '--output', dest,
             '--format', format,
         ]
+        cmd += drawio_args
 
         try:
             self.log.debug('Using export command {}'.format(cmd))

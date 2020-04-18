@@ -110,7 +110,7 @@ class ExporterTests(unittest.TestCase):
         self.exporter.export_file.return_value = 0
 
         result = self.exporter.ensure_file_cached(
-                source, source_rel, 0, drawio_executable, cache_dir, 'svg')
+                source, source_rel, 0, drawio_executable, [], cache_dir, 'svg')
         assert result == self.exporter.make_cache_filename.return_value
 
     def test_ensure_file_cached_aborts_if_drawio_executable_unavailable(self):
@@ -125,7 +125,7 @@ class ExporterTests(unittest.TestCase):
         self.log.warn = MagicMock()
 
         result = self.exporter.ensure_file_cached(
-                source, source_rel, 0, drawio_executable, cache_dir, 'svg')
+                source, source_rel, 0, drawio_executable, [], cache_dir, 'svg')
 
         assert result == None
         self.log.warn.assert_called_once()
@@ -146,7 +146,7 @@ class ExporterTests(unittest.TestCase):
         self.exporter.export_file.return_value = 0
 
         result = self.exporter.ensure_file_cached(
-                source, source_rel, 0, drawio_executable, cache_dir, 'svg')
+                source, source_rel, 0, drawio_executable, [], cache_dir, 'svg')
 
         assert result == self.exporter.make_cache_filename.return_value
         self.exporter.use_cached_file.assert_called_once()
@@ -170,7 +170,7 @@ class ExporterTests(unittest.TestCase):
         self.log.error = MagicMock()
 
         result = self.exporter.ensure_file_cached(
-                source, source_rel, 0, drawio_executable, cache_dir, 'svg')
+                source, source_rel, 0, drawio_executable, [], cache_dir, 'svg')
 
         assert result == None
         self.log.error.assert_called_once()
@@ -217,7 +217,7 @@ class ExporterTests(unittest.TestCase):
         call_mock.return_value = 0
 
         result = self.exporter.export_file(
-                source, 0, dest, drawio_executable, 'svg')
+                source, 0, dest, drawio_executable, [], 'svg')
 
         assert result == 0
         call_mock.assert_called_once()
@@ -233,11 +233,33 @@ class ExporterTests(unittest.TestCase):
         self.log.exception = MagicMock()
 
         result = self.exporter.export_file(
-                source, 0, dest, drawio_executable, 'svg')
+                source, 0, dest, drawio_executable, [], 'svg')
 
         assert result == None
         self.log.exception.assert_called_once()
         call_mock.assert_called_once()
+
+    @patch('subprocess.call')
+    def test_export_file_honours_drawio_args(self, call_mock):
+        source = sep + join('docs', 'diagram.drawio')
+        page_index = 0
+        dest = sep + join('docs', 'diagram.drawio-0.svg')
+        drawio_executable = sep + join('bin', 'drawio')
+        format = 'svg'
+
+        def test_drawio_args(drawio_args):
+            self.exporter.export_file(
+                    source, page_index, dest, drawio_executable, drawio_args, format)
+            call_mock.assert_called_with([
+                drawio_executable,
+                '--export', source,
+                '--page-index', str(page_index),
+                '--output', dest,
+                '--format', format,
+            ] + drawio_args)
+
+        test_drawio_args([])
+        test_drawio_args(['--no-sandbox'])
 
 
 if __name__ == '__main__':
