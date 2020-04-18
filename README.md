@@ -36,6 +36,8 @@ plugins:
         # We'll look for it on your system's PATH, then default installation
         # paths. If we can't find it we'll warn you.
         drawio_executable: null
+        # Additional Draw.io CLI args
+        drawio_args: []
         # Output format (see draw.io --help | grep format)
         format: svg
         # Glob pattern for matching source files
