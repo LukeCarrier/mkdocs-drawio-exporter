@@ -84,7 +84,7 @@ If you're seeing messages like the following it's likely that you're running MkD
 [22:0418/231827.169035:FATAL:electron_main_delegate.cc(211)] Running as root without --no-sandbox is not supported. See https://crbug.com/638180.
 ```
 
-If possible, consider running MkDocs as a non-privileged user. Depending on the circumstances (e.g. running within an unprivilegedcontainer) it may be appropriate to disable the Chrome sandbox by adding the following option to `mkdocs.yml`:
+If possible, consider running MkDocs as a non-privileged user. Depending on the circumstances (e.g. running within an unprivileged container) it may be appropriate to disable the Chrome sandbox by adding the following option to `mkdocs.yml`:
 
 ```yaml
 plugins:
