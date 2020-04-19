@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.1: fix handling of cached files
+
+* Fix handling of cached files
+
 ## 0.6.0: ease containerisation
 
 * New `drawio_args` option allows passing additional args to the Draw.io CLI

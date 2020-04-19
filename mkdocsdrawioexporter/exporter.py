@@ -204,13 +204,13 @@ class DrawIoExporter:
         cache_filename = self.make_cache_filename(source_rel, page_index, cache_dir)
         exit_status = None
 
-        if not drawio_executable:
-            self.log.warn('Skipping build of "{}" as Draw.io executable not available'.format(source))
-            return (cache_filename, exit_status)
-
         if self.use_cached_file(source, cache_filename):
             self.log.debug('Source file appears unchanged; using cached copy from "{}"'.format(cache_filename))
         else:
+            if not drawio_executable:
+                self.log.warn('Skipping export of "{}" as Draw.io executable not available'.format(source))
+                return (None, exit_status)
+
             self.log.debug('Exporting "{}" to "{}"'.format(source, cache_filename))
             exit_status = self.export_file(
                     source, page_index, cache_filename,

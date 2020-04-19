@@ -83,7 +83,7 @@ class DrawIoExporterPlugin(mkdocs.plugins.BasePlugin):
                     self.config['drawio_executable'], self.config['drawio_args'],
                     self.config['cache_dir'], self.config['format'])
 
-            if exit_status != 0:
+            if exit_status not in (None, 0):
                 log.error('Export failed with exit status {}; skipping copy'.format(exit_status))
                 continue
 
