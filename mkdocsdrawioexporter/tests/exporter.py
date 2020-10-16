@@ -44,6 +44,14 @@ class ExporterTests(unittest.TestCase):
             self.exporter.prepare_drawio_executable(
                     sep + join('does', 'not', 'exist'), [], [])
 
+    def test_prepare_drawio_executable_uses_valid_specified_exectuable(self):
+        # We need something that exists, and right now we're not verifying that
+        # it's executable. This will do.
+        expected = os.path.abspath(__file__)
+        actual = self.exporter.prepare_drawio_executable(
+                expected, self.exporter.DRAWIO_EXECUTABLE_NAMES, [])
+        assert expected == actual
+
     @patch('shutil.which')
     @patch.dict(os.environ, {'PATH': sep + join('does', 'not', 'exist')})
     def test_prepare_drawio_executable_on_path(self, mock_which):

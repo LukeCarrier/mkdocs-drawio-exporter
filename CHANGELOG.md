@@ -3,6 +3,7 @@
 ## 0.7.0: clean up configuration handling
 
 * Handle missing executable by exiting
+* Honour a passed `drawio_executable`
 * Correctly handle Program Files (x86) on 64-bit Windows
 
 ## 0.6.1: fix handling of cached files

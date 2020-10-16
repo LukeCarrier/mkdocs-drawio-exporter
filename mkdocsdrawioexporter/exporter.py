@@ -162,6 +162,7 @@ class DrawIoExporter:
             if not os.path.isfile(executable):
                 raise ConfigurationError.drawio_executable(
                         executable, "executable didn't exist")
+            return executable
 
         for name in executable_names:
             executable = shutil.which(name)
