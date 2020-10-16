@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.7.0: clean up configuration handling
+
+* Correctly handle Program Files (x86) on 64-bit Windows
+
 ## 0.6.1: fix handling of cached files
 
 * Fix handling of cached files

@@ -105,7 +105,7 @@ class DrawIoExporter:
         elif platform == 'win32':
             program_files = [os.environ['ProgramFiles']]
             if 'ProgramFiles(x86)' in os.environ:
-                program_files.append('ProgramFiles(x86)')
+                program_files.append(os.environ['ProgramFiles(x86)'])
             return [os.path.join(dir, 'draw.io', 'draw.io.exe') for dir in program_files]
         else:
             self.log.warn('Draw.io executable paths not known for platform "{}"'.format(platform))
