@@ -6,6 +6,33 @@ import subprocess
 import sys
 
 
+class ConfigurationError(Exception):
+    """Configuration exception.
+
+    Used to signal that MkDocs should exit, as the plugin configuration is
+    invalid and we'll be unable to export diagrams.
+    """
+
+    key = None
+    value = None
+    message = None
+
+    def __init__(self, key, value, message):
+        """
+        """
+        self.key = key
+        self.value = value
+        self.message = message
+        Exception.__init__(self, self.message)
+
+    def __str__(self):
+        return 'drawio-exporter: value "{}" for key "{}" is invalid: {}'.format(
+                self.value, self.key, self.message)
+
+    def drawio_executable(value, message):
+        return ConfigurationError('drawio_executable', value, message)
+
+
 class Source:
     """Diagram source.
 
@@ -131,9 +158,10 @@ class DrawIoExporter:
         :param list(str) platform_executable_paths: Candidate platform-specific executable paths.
         :return str: Final Draw.io executable.
         """
-        if executable and not os.path.isfile(executable):
-            self.log.error('Configured Draw.io executable "{}" doesn\'t exist', executable)
-            return
+        if executable:
+            if not os.path.isfile(executable):
+                raise ConfigurationError.drawio_executable(
+                        executable, "executable didn't exist")
 
         for name in executable_names:
             executable = shutil.which(name)
@@ -149,7 +177,8 @@ class DrawIoExporter:
                         sys.platform, candidate))
                 return candidate
 
-        self.log.error('Unable to find Draw.io executable; ensure it\'s on PATH or set drawio_executable option')
+        raise ConfigurationError.drawio_executable(
+                None, 'Unable to find Draw.io executable; ensure it\'s on PATH or set drawio_executable option')
 
     def rewrite_image_embeds(self, output_content, image_re, sources, format):
         """Rewrite image embeds.

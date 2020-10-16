@@ -6,7 +6,7 @@ import os
 from os.path import isabs, join, sep
 import re
 
-from ..exporter import DrawIoExporter
+from ..exporter import ConfigurationError, DrawIoExporter
 
 
 class FileMock:
@@ -40,9 +40,9 @@ class ExporterTests(unittest.TestCase):
         assert result.startswith(sep + 'docs' + sep)
 
     def test_prepare_drawio_executable_aborts_on_missing_executable(self):
-        self.log.error = MagicMock()
-        assert self.exporter.prepare_drawio_executable(sep + join('does', 'not', 'exist'), [], []) == None
-        self.log.error.assert_called_once()
+        with self.assertRaises(ConfigurationError):
+            self.exporter.prepare_drawio_executable(
+                    sep + join('does', 'not', 'exist'), [], [])
 
     @patch('shutil.which')
     @patch.dict(os.environ, {'PATH': sep + join('does', 'not', 'exist')})
@@ -62,10 +62,9 @@ class ExporterTests(unittest.TestCase):
         ])
         assert result == expect
 
-    def test_prepare_drawio_executable_logs_error_on_failure(self):
-        self.log.error = MagicMock()
-        assert self.exporter.prepare_drawio_executable(None, [], []) == None
-        self.log.error.assert_called_once()
+    def test_prepare_drawio_executable_raises_on_failure(self):
+        with self.assertRaises(ConfigurationError):
+            self.exporter.prepare_drawio_executable(None, [], [])
 
     def test_rewrite_image_embeds(self):
         source = '''<h1>Example text</h1>
