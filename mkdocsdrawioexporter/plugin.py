@@ -8,7 +8,7 @@ import mkdocs.plugins
 from mkdocs.structure.files import Files
 from mkdocs.utils import copy_file
 
-from .exporter import DrawIoExporter, Source
+from .exporter import ConfigurationError, DrawIoExporter, Source
 
 
 log = mkdocs.plugins.log.getChild('drawio-exporter')
@@ -40,9 +40,13 @@ class DrawIoExporterPlugin(mkdocs.plugins.BasePlugin):
 
         self.config['cache_dir'] = self.exporter.prepare_cache_dir(
                 self.config['cache_dir'], config['docs_dir'])
-        self.config['drawio_executable'] = self.exporter.prepare_drawio_executable(
-                self.config['drawio_executable'], DrawIoExporter.DRAWIO_EXECUTABLE_NAMES,
-                self.exporter.drawio_executable_paths(sys.platform))
+        try:
+            self.config['drawio_executable'] = self.exporter.prepare_drawio_executable(
+                    self.config['drawio_executable'],
+                    DrawIoExporter.DRAWIO_EXECUTABLE_NAMES,
+                    self.exporter.drawio_executable_paths(sys.platform))
+        except ConfigurationError as e:
+            raise mkdocs.exceptions.ConfigurationError(str(e))
 
         os.makedirs(self.config['cache_dir'], exist_ok=True)
         self.image_re = re.compile(self.config['image_re'])
