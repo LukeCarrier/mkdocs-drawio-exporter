@@ -14,11 +14,26 @@ class ConfigurationError(Exception):
     """
 
     key = None
+    """Configuration key.
+
+    :type str:"""
+
     value = None
+    """Configuration value.
+
+    :type mixed:"""
+
     message = None
+    """Explanatory message describing the problem.
+
+    :type str:"""
 
     def __init__(self, key, value, message):
-        """
+        """Initialise a ConfigurationError.
+
+        :param str key: Configuration key.
+        :param mixed value: Configuration value.
+        :param str message: Explanatory message describing the problem.
         """
         self.key = key
         self.value = value
@@ -30,6 +45,11 @@ class ConfigurationError(Exception):
                 self.value, self.key, self.message)
 
     def drawio_executable(value, message):
+        """Raise an error for a misconfigured Draw.io path.
+
+        :param str value: Configured Draw.io executable path.
+        :param str message: Explanatory message describing the problem.
+        """
         return ConfigurationError('drawio_executable', value, message)
 
 
