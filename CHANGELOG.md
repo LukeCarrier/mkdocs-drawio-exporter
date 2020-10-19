@@ -5,6 +5,7 @@
 * Handle missing executable by exiting
 * Honour a passed `drawio_executable`
 * Correctly handle Program Files (x86) on 64-bit Windows
+* Update dependencies
 
 ## 0.6.1: fix handling of cached files
 
