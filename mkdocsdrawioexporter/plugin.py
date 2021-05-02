@@ -25,6 +25,7 @@ class DrawIoExporterPlugin(mkdocs.plugins.BasePlugin):
         ('drawio_executable', config_options.Type(str)),
         ('drawio_args', config_options.Type(list, default=[])),
         ('format', config_options.Type(str, default='svg')),
+        ('embed_format', config_options.Type(str, default='{img_open}{img_src}{img_close}')),
         ('sources', config_options.Type(str, default='*.drawio')),
     )
 
@@ -54,7 +55,7 @@ class DrawIoExporterPlugin(mkdocs.plugins.BasePlugin):
     def on_post_page(self, output_content, page, **kwargs):
         output_content, content_sources = self.exporter.rewrite_image_embeds(
                 output_content, self.config['sources'],
-                self.config['format'])
+                self.config['format'], self.config['embed_format'])
 
         for source in content_sources:
             source.resolve_rel_path(page.file.dest_path)
