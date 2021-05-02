@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  test:
+    strategy:
+      # Allow other matrix jobs to continue after one fails, allowing us to
+      # isolate platform-specific issues.
+      fail-fast: false
+
+      matrix:
+        drawio-version: [14.5.1]
+        python-version: [3.9]
+        os:
+          - macos-latest
+          - ubuntu-latest
+          - windows-latest
+        include:
+          - os: ubuntu-latest
+            drawio-version: 14.5.1
+            drawio-arch: amd64
+            drawio-sha256sum: 0cabdf1e9a051fc38672a9233b1b2d5368d2a776fe3d3f5e09a823278b899976
+          - os: windows-latest
+            drawio-version: 14.5.1
+            drawio-sha256sum: 6f5ff0aa7ef5bd4b71d1c38ba37fbe9a6afcf9eaa9e5bb648669c93e18f98dc1
+
+    timeout-minutes: 10
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Install Draw.io Desktop (macOS)
+        if: runner.os == 'macOS'
+        run: brew install drawio
+      - name: Install Draw.io Desktop (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          set -euo pipefail
+          drawio_deb="drawio-${{ matrix.drawio-arch }}-${{ matrix.drawio-version }}.deb"
+          drawio_url="https://github.com/jgraph/drawio-desktop/releases/download/v${{ matrix.drawio-version }}/drawio-${{ matrix.drawio-arch }}-${{ matrix.drawio-version }}.deb"
+          curl -L -o "$drawio_deb" "$drawio_url"
+          sha256sum --check <<<"${{ matrix.drawio-sha256sum }}  $drawio_deb"
+          sudo apt-get install -y libasound2 xvfb ./"$drawio_deb"
+      - name: Install Draw.io Desktop (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = "Stop"
+          $drawioUrl = "https://github.com/jgraph/drawio-desktop/releases/download/v${{ matrix.drawio-version }}/draw.io-${{ matrix.drawio-version }}.exe"
+          $drawioExe = "draw.io-${{ matrix.drawio-version }}.exe"
+          $expectedChecksum = "${{ matrix.drawio-sha256sum }}".ToUpper()
+          $client = New-Object System.Net.WebClient
+          $client.DownloadFile($drawioUrl, $drawioExe)
+          $checksum = (Get-FileHash -Path $drawioExe -Algorithm SHA256).Hash
+          if ($checksum -ne $expectedChecksum) {
+            Write-Error "Expected and actual checksums didn't match"
+            exit 1
+          }
+          $proc = Start-Process  "./${drawioExe}" "/S", "/allusers"
+          $proc | Wait-Process
+
+      - name: Install Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Upgrade Pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install dependencies
+        run: python -m pip install --requirement requirements.txt
+
+      - name: Run tests
+        run: python -m unittest mkdocsdrawioexporter.tests
