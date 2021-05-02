@@ -78,15 +78,24 @@ class ExporterTests(unittest.TestCase):
         source = '''<h1>Example text</h1>
 <img alt="Some text" src="../some-diagram.drawio" />'''
 
-        unmodified, sources = self.exporter.rewrite_image_embeds(
-                source, '*.nomatch', 'svg')
-        assert unmodified == source
+        default_embed_format = '{img_open}{img_src}{img_close}'
+        object_embed_format = '<object type="image/svg+xml" data="{img_src}"></object>'
+
+        output_content, sources = self.exporter.rewrite_image_embeds(
+                source, '*.nomatch', 'svg', default_embed_format)
+        assert output_content == source
         assert sources == []
 
-        modified, sources = self.exporter.rewrite_image_embeds(
-                source, '*.drawio', 'svg')
-        assert modified != source
-        assert 'src="../some-diagram.drawio-0.svg"' in modified
+        output_content, sources = self.exporter.rewrite_image_embeds(
+                source, '*.drawio', 'svg', default_embed_format)
+        assert output_content != source
+        assert 'src="../some-diagram.drawio-0.svg"' in output_content
+        assert len(sources) == 1
+
+        output_content, sources = self.exporter.rewrite_image_embeds(
+                source, '*.drawio', 'svg', object_embed_format)
+        assert output_content != source
+        assert '<object type="image/svg+xml" data="../some-diagram.drawio-0.svg"></object>' in output_content
         assert len(sources) == 1
 
     def test_filter_cache_files(self):
