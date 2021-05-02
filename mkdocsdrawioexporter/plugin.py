@@ -1,5 +1,4 @@
 import os.path
-import re
 import sys
 
 import mkdocs
@@ -26,14 +25,12 @@ class DrawIoExporterPlugin(mkdocs.plugins.BasePlugin):
         ('drawio_executable', config_options.Type(str)),
         ('drawio_args', config_options.Type(list, default=[])),
         ('format', config_options.Type(str, default='svg')),
-        ('image_re', config_options.Type(str, default='(<img[^>]+src=")([^">]+)("\s*\/?>)')),
         ('sources', config_options.Type(str, default='*.drawio')),
     )
 
     exporter = None
 
     sources = []
-    image_re = None
 
     def on_config(self, config):
         self.exporter = DrawIoExporter(log)
@@ -49,15 +46,14 @@ class DrawIoExporterPlugin(mkdocs.plugins.BasePlugin):
             raise mkdocs.exceptions.ConfigurationError(str(e))
 
         os.makedirs(self.config['cache_dir'], exist_ok=True)
-        self.image_re = re.compile(self.config['image_re'])
 
-        log.debug('Using Draw.io executable "{}", arguments {}, cache directory "{}" and image regular expression "{}"'.format(
+        log.debug('Using Draw.io executable "{}", arguments {} and cache directory "{}"'.format(
                 self.config['drawio_executable'], self.config['drawio_args'],
-                self.config['cache_dir'], self.config['image_re']))
+                self.config['cache_dir']))
 
     def on_post_page(self, output_content, page, **kwargs):
         output_content, content_sources = self.exporter.rewrite_image_embeds(
-                output_content, self.image_re, self.config['sources'],
+                output_content, self.config['sources'],
                 self.config['format'])
 
         for source in content_sources:
