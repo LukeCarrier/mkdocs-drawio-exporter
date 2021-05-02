@@ -1,9 +1,13 @@
 import fnmatch
 import hashlib
 import os.path
+import re
 import shutil
 import subprocess
 import sys
+
+
+IMAGE_RE = re.compile('(<img[^>]+src=")([^">]+)("\s*\/?>)')
 
 
 class ConfigurationError(Exception):
@@ -201,11 +205,10 @@ class DrawIoExporter:
         raise ConfigurationError.drawio_executable(
                 None, 'Unable to find Draw.io executable; ensure it\'s on PATH or set drawio_executable option')
 
-    def rewrite_image_embeds(self, output_content, image_re, sources, format):
+    def rewrite_image_embeds(self, output_content, sources, format):
         """Rewrite image embeds.
 
         :param str output_content: Content to rewrite.
-        :param re.Pattern image_re: Pattern to match HTML <img> tags.
         :param str sources: Glob to match Draw.io diagram filenames.
         :param str format: Desired export format.
         :return str: Rewritten content.
@@ -226,7 +229,7 @@ class DrawIoExporter:
                         match.group(1), filename, page_index, format, match.group(3))
             else:
                 return match.group(0)
-        output_content = image_re.sub(replace, output_content)
+        output_content = IMAGE_RE.sub(replace, output_content)
 
         return (output_content, content_sources)
 

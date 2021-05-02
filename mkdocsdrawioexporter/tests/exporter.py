@@ -77,15 +77,14 @@ class ExporterTests(unittest.TestCase):
     def test_rewrite_image_embeds(self):
         source = '''<h1>Example text</h1>
 <img alt="Some text" src="../some-diagram.drawio" />'''
-        image_re = re.compile('(<img[^>]+src=")([^">]+)("\s*\/?>)')
 
         unmodified, sources = self.exporter.rewrite_image_embeds(
-                source, image_re, '*.nomatch', 'svg')
+                source, '*.nomatch', 'svg')
         assert unmodified == source
         assert sources == []
 
         modified, sources = self.exporter.rewrite_image_embeds(
-                source, image_re, '*.drawio', 'svg')
+                source, '*.drawio', 'svg')
         assert modified != source
         assert 'src="../some-diagram.drawio-0.svg"' in modified
         assert len(sources) == 1
