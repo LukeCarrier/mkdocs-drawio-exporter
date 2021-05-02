@@ -21,7 +21,14 @@ plugins:
 
 ## Configuration
 
-The values below are the defaults -- this section is optional and can be omitted if they work for you.
+For the default configuration, just add the plugin to the `plugins` key:
+
+```yaml
+plugins:
+    - drawio-exporter
+```
+
+You can override the default configuration:
 
 ```yaml
 plugins:
@@ -40,6 +47,12 @@ plugins:
         drawio_args: []
         # Output format (see draw.io --help | grep format)
         format: svg
+        # Embed format
+        #   * The default is to embed via the <img> tag, only rewriting the
+        #     value of the src attribute.
+        #   * Consider <object type="image/svg+xml" data="{img_src}"></object>
+        #     to enable interactive elements (like hyperlinks) in SVGs.
+        embed_format: '{img_open}{img_src}{img_close}'
         # Glob pattern for matching source files
         sources: '*.drawio'
 ```
