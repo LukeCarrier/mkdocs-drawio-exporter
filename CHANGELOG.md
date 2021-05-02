@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.0: embed modes for SVG
+
+* Allow embedding SVGs inline or with `<object>`
+* Update dependencies
+
 ## 0.7.0: clean up configuration handling
 
 * Handle missing executable by exiting
