@@ -10,7 +10,7 @@ setup(
     name='mkdocs-drawio-exporter',
     long_description=long_description,
     long_description_content_type='text/markdown',
-    version='0.7.0',
+    version='0.8.0',
     packages=['mkdocsdrawioexporter'],
     url='https://github.com/LukeCarrier/mkdocs-drawio-exporter',
     license='MIT',
