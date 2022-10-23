@@ -5,7 +5,9 @@ import re
 import shutil
 import subprocess
 import sys
-
+from collections import UserDict
+from logging import Logger
+from re import Match
 
 IMAGE_RE = re.compile('(<img[^>]+src=")([^">]+)("\s*\/?>)')
 
@@ -83,14 +85,16 @@ class Source:
 
     :type: int"""
 
-    def __init__(self, source_embed, page_index):
+    def __init__(self, source_embed, page_index, page_path):
         """Initialise a Source.
 
         :param str source_embed: Path of the embedded resource.
         :param int page_index: Page index within the document.
+        :param int page_path: Page document path.
         """
         self.source_embed = source_embed
         self.page_index = page_index
+        self.source_rel = os.path.normpath(os.path.join(os.path.dirname(page_path), self.source_embed))
 
     def __eq__(self, other):
         return self.source_rel == other.source_rel \
@@ -102,15 +106,6 @@ class Source:
             'page_index', self.page_index,
         ))
 
-    def resolve_rel_path(self, page_dest_path):
-        """Resolve the path of the source, relative to the documentation directory.
-
-        :param str page_dest_path: The destination path of the parent page.
-        """
-        self.source_rel = os.path.normpath(os.path.join(
-                os.path.dirname(page_dest_path),
-                self.source_embed))
-
 
 class DrawIoExporter:
     """Draw.io Exporter.
@@ -119,158 +114,237 @@ class DrawIoExporter:
     plugin events is kept separate to ease testing.
     """
 
-    log = None
-    """Log.
+    __config: dict
+    """Configs.
 
-    :type: logging.Logger
+    :type: dict
     """
 
-    def __init__(self, log):
+    def __init__(self, config: dict = {}):
         """Initialise.
 
-        :param logging.Logger log: Where to log.
+        :param dict config: Configs.
         """
-        self.log = log
 
-    DRAWIO_EXECUTABLE_NAMES = ['drawio', 'draw.io']
-    """Draw.io executable names."""
+        self.__config = (config or {})
+        self.__config['cache_dir'] = self.__get_cache_dir()
+        self.__config['drawio_executable'] = self.__get_drawio_executable()
 
-    def drawio_executable_paths(self, platform):
+    @property
+    def logger(self) -> Logger:
+        """Logger."""
+        return self.__config.get('logger')
+    
+    @property
+    def executable_names(self) -> list[str]:
+        """Draw.io executable names."""
+        return self.__config.get('executable_names', ['drawio', 'draw.io'])
+    
+    @property
+    def platform(self) -> str:
+        """System platform."""
+        return self.__config.get('platform', sys.platform)
+
+    @property
+    def docs_dir(self) -> str:
+        """Docs directory, in which to base relative cache directories."""
+        return self.__config.get('docs_dir', '')
+
+    @property
+    def site_dir(self) -> str:
+        """Site directory path."""
+        return self.__config.get('site_dir')
+
+    @property
+    def cache_dir(self) -> str:
+        """Final cache directory."""
+        return self.__config.get('cache_dir')
+
+    @property
+    def drawio_executable(self) -> str:
+        """Draw.io executable path."""
+        return self.__config.get('drawio_executable')
+
+    @property
+    def drawio_args(self) -> list[str]:
+        """Additional arguments to append to the Draw.io export command."""
+        return self.__config.get('drawio_args') or []
+    
+    @property
+    def sources(self) -> str:
+        """Glob to match Draw.io diagram filenames."""
+        return self.__config.get('sources')
+
+    @property
+    def format(self) -> str:
+        """Desired export format."""
+        return self.__config.get('format')
+
+    @property
+    def embed_format(self) -> str:
+        """Format string to rewrite <img> tags with."""
+        return self.__config.get('embed_format')
+
+    def __get_cache_dir(self) -> str:
+        """Ensure the cache path is set, absolute and exists.
+
+        :param dict config: Configuration.
+        :return str: Final cache directory.
+        """
+
+        cache_dir = self.__config.get('cache_dir') or 'drawio-exporter'
+        
+        if not os.path.isabs(cache_dir):
+            cache_dir = os.path.join(self.docs_dir, cache_dir)
+        
+        return cache_dir
+
+    def __get_drawio_executable(self):
+        """Ensure the Draw.io executable path is configured, or guess it.
+
+        :param dict config: Configuration.
+        :return str: Final Draw.io executable.
+        """
+        
+        executable = self.__config.get('drawio_executable')
+
+        if executable:
+            if not os.path.isfile(executable):
+                raise ConfigurationError.drawio_executable(executable, "executable didn't exist")
+            return executable
+
+        for executable_name in self.executable_names:
+            executable = shutil.which(executable_name)
+            
+            if executable:
+                self.logger.debug('Found Draw.io executable "{}" at "{}"'.format(executable_name, executable))
+                return executable
+
+        executable_paths = self.get_executable_paths()
+        self.logger.debug('Trying paths {} for platform "{}"'.format(executable_paths, sys.platform))
+
+        for executable_path in executable_paths:
+            if os.path.isfile(executable_path):
+                self.logger.debug('Found Draw.io executable for platform "{}" at "{}"'.format(
+                        sys.platform, executable_path))
+                return executable_path
+
+        raise ConfigurationError.drawio_executable(
+                None, 
+                'Unable to find Draw.io executable; ensure it\'s on PATH or set drawio_executable option'
+        )
+
+    def get_executable_paths(self) -> (list[str] | None):
         """Get the Draw.io executable paths for the platform.
 
         Declared as a function to allow us to use API/environment information
         available only when running under the specified platform.
-
-        :param str platform: sys.platform.
-        :return list(str): All known paths.
+        
+        :return list[str]: All known paths.
         """
-        if platform == 'darwin':
-            applications = [
-                os.path.expanduser('~/Applications'),
-                '/Applications',
-            ]
+
+        if not self.platform:
+            self.logger.warn('There is no draw.io executable paths if you do not specify a platform')
+        elif self.platform == 'darwin':
+            applications = [os.path.expanduser('~/Applications'), '/Applications']
             drawio_path = os.path.join('draw.io.app', 'Contents', 'MacOS', 'draw.io')
             return [os.path.join(dir, drawio_path) for dir in applications]
-        elif platform.startswith('linux'):
+        elif self.platform.startswith('linux'):
             return ['/opt/draw.io/drawio']
-        elif platform == 'win32':
+        elif self.platform == 'win32':
             program_files = [os.environ['ProgramFiles']]
             if 'ProgramFiles(x86)' in os.environ:
                 program_files.append(os.environ['ProgramFiles(x86)'])
             return [os.path.join(dir, 'draw.io', 'draw.io.exe') for dir in program_files]
         else:
-            self.log.warn('Draw.io executable paths not known for platform "{}"'.format(platform))
+            self.logger.warn('Draw.io executable paths not known for platform "{}"'.format(self.platform))
 
-    def prepare_cache_dir(self, cache_dir, docs_dir):
-        """Ensure the cache path is set, absolute and exists.
+    def get_source_from(self, match: Match[str], content_path: str) -> Source:
+        """Get source from regex match."""
+        try:
+            filename, page_index = match.group(2).rsplit('#', 1)
+        except ValueError:
+            filename = match.group(2)
+            page_index = 0
+        
+        return Source(filename, page_index, content_path)
 
-        :param str cache_dir: Configured cache directory.
-        :param str docs_dir: Docs directory, in which to base relative cache directories.
-        :return str: Final cache directory.
-        """
-        if not cache_dir:
-           cache_dir = 'drawio-exporter'
-        if not os.path.isabs(cache_dir):
-            cache_dir = os.path.join(docs_dir, cache_dir)
-        return cache_dir
+    def get_sources_from(self, content: str, content_path: str) -> list[Source]:
+        """Get source list from output."""
+        
+        sources = []
+        
+        matches = IMAGE_RE.finditer(content)
+        
+        for match in matches:
+            source = self.get_source_from(match, content_path)
+            if fnmatch.fnmatch(source.source_embed, self.sources):
+                sources.append(source)
 
-    def prepare_drawio_executable(self, executable, executable_names, platform_executable_paths):
-        """Ensure the Draw.io executable path is configured, or guess it.
+        return sources
 
-        :param str executable: Configured Draw.io executable.
-        :param list(str) executable_names: Candidate executable names to seek on PATH.
-        :param list(str) platform_executable_paths: Candidate platform-specific executable paths.
-        :return str: Final Draw.io executable.
-        """
-        if executable:
-            if not os.path.isfile(executable):
-                raise ConfigurationError.drawio_executable(
-                        executable, "executable didn't exist")
-            return executable
-
-        for name in executable_names:
-            executable = shutil.which(name)
-            if executable:
-                self.log.debug('Found Draw.io executable "{}" at "{}"'.format(name, executable))
-                return executable
-
-        candidates = platform_executable_paths
-        self.log.debug('Trying paths {} for platform "{}"'.format(candidates, sys.platform))
-        for candidate in candidates:
-            if os.path.isfile(candidate):
-                self.log.debug('Found Draw.io executable for platform "{}" at "{}"'.format(
-                        sys.platform, candidate))
-                return candidate
-
-        raise ConfigurationError.drawio_executable(
-                None, 'Unable to find Draw.io executable; ensure it\'s on PATH or set drawio_executable option')
-
-    def rewrite_image_embeds(self, output_content, sources, format, embed_format):
+    def rewrite_image_embeds(self, content: str, content_path: str):
         """Rewrite image embeds.
 
-        :param str output_content: Content to rewrite.
-        :param str sources: Glob to match Draw.io diagram filenames.
-        :param str format: Desired export format.
-        :param str embed_format: Format string to rewrite <img> tags with.
+        :param str content: Page content to rewrite.
+        :param str content_path: Path of the page content.
         :return str: Rewritten content.
         """
-        content_sources = []
+        
+        def replace(match: Match[str]):
 
-        def replace(match):
-            try:
-                filename, page_index = match.group(2).rsplit('#', 1)
-            except ValueError:
-                filename = match.group(2)
-                page_index = 0
+            source = self.get_source_from(match, content_path)
 
-            if fnmatch.fnmatch(filename, sources):
-                content_sources.append(Source(filename, page_index))
-                img_src = "{}-{}.{}".format(filename, page_index, format)
+            if fnmatch.fnmatch(source.source_embed, self.sources):
+                
+                img_src = "{}-{}.{}".format(source.source_embed, source.page_index, self.format)
 
-                return embed_format.format(
-                        img_open=match.group(1), img_close=match.group(3),
-                        img_src=img_src)
+                if self.embed_format == "html":
+                    path = os.path.abspath(
+                        os.path.join(
+                            self.site_dir, 
+                            "{}/{}".format(content_path[:content_path.rindex("/")], img_src)
+                        )
+                    )
+                    return open(path, 'r').read()
+
+                return self.embed_format.format(
+                    img_open=match.group(1), 
+                    img_close=match.group(3), 
+                    img_src=img_src
+                )
             else:
                 return match.group(0)
-        output_content = IMAGE_RE.sub(replace, output_content)
 
-        return (output_content, content_sources)
+        return IMAGE_RE.sub(replace, content)
 
-    def filter_cache_files(self, files, cache_dir):
+    def filter_cache_files(self, files):
         """Remove cache files from the generated output.
 
         :param list(mkdocs.structure.File): Files to filter.
-        :param str cache_dir: Cache directory.
         :return list(mkdocs.structure.File): Filtered files.
         """
-        return [f for f in files if not f.abs_src_path.startswith(cache_dir)]
+        return [f for f in files if not f.abs_src_path.startswith(self.cache_dir)]
 
-    def ensure_file_cached(self, source, source_rel, page_index, drawio_executable, drawio_args, cache_dir, format):
+    def ensure_file_cached(self, source, source_rel, page_index):
         """Ensure cached copy of output exists.
 
         :param str source: Source path, absolute.
         :param str source_rel: Source path, relative to docs directory.
         :param int page_index: Page index, numbered from zero.
-        :param str drawio_executable: Path to the configured Draw.io executable.
-        :param list(str) drawio_args: Additional arguments to append to the Draw.io export command.
-        :param str cache_dir: Export cache directory.
-        :param str format: Desired export format.
-        :return tuple(str, int): Cached export filename.
         """
-        cache_filename = self.make_cache_filename(source_rel, page_index, cache_dir)
+        cache_filename = self.make_cache_filename(source_rel, page_index, self.cache_dir)
         exit_status = None
 
         if self.use_cached_file(source, cache_filename):
-            self.log.debug('Source file appears unchanged; using cached copy from "{}"'.format(cache_filename))
+            self.logger.debug('Source file appears unchanged; using cached copy from "{}"'.format(cache_filename))
         else:
-            if not drawio_executable:
-                self.log.warn('Skipping export of "{}" as Draw.io executable not available'.format(source))
+            if not self.drawio_executable:
+                self.logger.warn('Skipping export of "{}" as Draw.io executable not available'.format(source))
                 return (None, exit_status)
 
-            self.log.debug('Exporting "{}" to "{}"'.format(source, cache_filename))
-            exit_status = self.export_file(
-                    source, page_index, cache_filename,
-                    drawio_executable, drawio_args, format)
+            self.logger.debug('Exporting "{}" to "{}"'.format(source, cache_filename))
+            exit_status = self.export_file(source, page_index, cache_filename, self.drawio_executable, self.drawio_args, self.format)
 
         return (cache_filename, exit_status)
 
@@ -317,7 +391,7 @@ class DrawIoExporter:
         cmd += drawio_args
 
         try:
-            self.log.debug('Using export command {}'.format(cmd))
+            self.logger.debug('Using export command {}'.format(cmd))
             return subprocess.call(cmd)
         except:
-            self.log.exception('Subprocess raised exception')
+            self.logger.exception('Subprocess raised exception')
