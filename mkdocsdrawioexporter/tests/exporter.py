@@ -1,6 +1,7 @@
+from email import message
 import shutil
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, mock_open, patch
 
 import logging
 import os
@@ -69,7 +70,7 @@ class ExporterTests(unittest.TestCase):
     def test_prepare_drawio_executable_aborts_on_missing_executable(self):
         
         with self.assertRaises(ConfigurationError):
-        
+            
             exporter = DrawIoExporter(
                 config={
                     'logger': self.logger,
@@ -103,8 +104,7 @@ class ExporterTests(unittest.TestCase):
 
         exporter = DrawIoExporter(
             config={
-                'logger': self.logger,
-                'drawio_executable': None
+                'logger': self.logger
             }
         )
         exporter.get_executable_paths = MagicMock()
@@ -154,6 +154,7 @@ class ExporterTests(unittest.TestCase):
 
         default_embed_format = '{img_open}{img_src}{img_close}'
         object_embed_format = '<object type="image/svg+xml" data="{img_src}"></object>'
+        html_embed_format = 'html'
 
         exporter = DrawIoExporter(
             config={
@@ -165,7 +166,7 @@ class ExporterTests(unittest.TestCase):
         )
         output_content = exporter.rewrite_image_embeds(source, os.path.abspath('.'))
         assert output_content == source
-
+        
         exporter = DrawIoExporter(
             config={
                 'logger': self.logger,
@@ -189,6 +190,25 @@ class ExporterTests(unittest.TestCase):
         output_content = exporter.rewrite_image_embeds(source, os.path.abspath('.'))
         assert output_content != source
         assert '<object type="image/svg+xml" data="../some-diagram.drawio-0.svg"></object>' in output_content
+
+        svg_content = "<svg>some-test</<svg>"
+        with patch("builtins.open", mock_open(read_data=svg_content)) as mock_file:
+            exporter = DrawIoExporter(
+                config={
+                    'logger': self.logger,
+                    'sources': '*.drawio',
+                    'format': 'svg',
+                    'embed_format': html_embed_format,
+                    'site_dir': os.path.abspath('../../')
+                }
+            )
+            output_content = exporter.rewrite_image_embeds(source, os.path.abspath('.'))
+            assert output_content != source
+            assert svg_content in output_content
+            mock_file.assert_called_with(
+                join(exporter.site_dir, "some-diagram.drawio-0.svg"), 
+                "r"
+            )
 
     def test_filter_cache_files(self):
         
@@ -365,11 +385,12 @@ class ExporterTests(unittest.TestCase):
 
         exporter = DrawIoExporter(
             config={
-                'logger': self.logger
+                'logger': self.logger,
+                'format': 'svg'
             }
         )
 
-        result = exporter.export_file(source, 0, dest, drawio_executable, [], 'svg')
+        result = exporter.export_file(source, 0, dest)
 
         assert result == 0
         call_mock.assert_called_once()
@@ -379,7 +400,7 @@ class ExporterTests(unittest.TestCase):
 
         source = sep + join('docs', 'diagram.drawio')
         dest = sep + join('docs', 'diagram.drawio-0.svg')
-        drawio_executable = sep + join('bin', 'drawio')
+        drawio_executable = shutil.which('drawio')
 
         call_mock.side_effect = OSError()
 
@@ -387,11 +408,13 @@ class ExporterTests(unittest.TestCase):
 
         exporter = DrawIoExporter(
             config={
-                'logger': self.logger
+                'logger': self.logger,
+                'drawio_executable': drawio_executable,
+                'format': 'svg'
             }
         )
 
-        result = exporter.export_file(source, 0, dest, drawio_executable, [], 'svg')
+        result = exporter.export_file(source, 0, dest)
 
         assert result == None
         self.logger.exception.assert_called_once()
@@ -402,17 +425,19 @@ class ExporterTests(unittest.TestCase):
         source = sep + join('docs', 'diagram.drawio')
         page_index = 0
         dest = sep + join('docs', 'diagram.drawio-0.svg')
-        drawio_executable = sep + join('bin', 'drawio')
+        drawio_executable = shutil.which('drawio')
         format = 'svg'
 
-        exporter = DrawIoExporter(
-            config={
-                'logger': self.logger
-            }
-        )
-
         def test_drawio_args(drawio_args):
-            exporter.export_file(source, page_index, dest, drawio_executable, drawio_args, format)
+            exporter = DrawIoExporter(
+                config={
+                    'logger': self.logger,
+                    'drawio_executable': drawio_executable,
+                    'drawio_args': drawio_args,
+                    'format': format
+                }
+            )
+            exporter.export_file(source, page_index, dest)
             call_mock.assert_called_with([
                 drawio_executable,
                 '--export', source,
@@ -424,6 +449,17 @@ class ExporterTests(unittest.TestCase):
         test_drawio_args([])
         test_drawio_args(['--no-sandbox'])
 
+    def test_should_not_have_set_embed_format_html_with_other_formats(self):
+        with self.assertRaises(ConfigurationError) as mock:
+            DrawIoExporter(
+                config={
+                    'logger': self.logger,
+                    'format': 'png',
+                    'embed_format': 'html'
+                }
+            )
+        
+        assert f"{mock.exception}" == 'drawio-exporter: value "html" for key "embed_format" is invalid: you must to set "format: svg" with the "embed_format: html".'
 
 if __name__ == '__main__':
     unittest.main()

@@ -120,16 +120,6 @@ class DrawIoExporter:
     :type: dict
     """
 
-    def __init__(self, config: dict = {}):
-        """Initialise.
-
-        :param dict config: Configs.
-        """
-
-        self.__config = (config or {})
-        self.__config['cache_dir'] = self.__get_cache_dir()
-        self.__config['drawio_executable'] = self.__get_drawio_executable()
-
     @property
     def logger(self) -> Logger:
         """Logger."""
@@ -185,6 +175,18 @@ class DrawIoExporter:
         """Format string to rewrite <img> tags with."""
         return self.__config.get('embed_format')
 
+    def __init__(self, config: dict = {}):
+        """Initialise.
+
+        :param dict config: Configs.
+        """
+
+        self.__config = (config or {})
+        self.__config['cache_dir'] = self.__get_cache_dir()
+        self.__config['drawio_executable'] = self.__get_drawio_executable()
+
+        self.__validate()
+
     def __get_cache_dir(self) -> str:
         """Ensure the cache path is set, absolute and exists.
 
@@ -209,13 +211,10 @@ class DrawIoExporter:
         executable = self.__config.get('drawio_executable')
 
         if executable:
-            if not os.path.isfile(executable):
-                raise ConfigurationError.drawio_executable(executable, "executable didn't exist")
             return executable
 
         for executable_name in self.executable_names:
             executable = shutil.which(executable_name)
-            
             if executable:
                 self.logger.debug('Found Draw.io executable "{}" at "{}"'.format(executable_name, executable))
                 return executable
@@ -226,13 +225,30 @@ class DrawIoExporter:
         for executable_path in executable_paths:
             if os.path.isfile(executable_path):
                 self.logger.debug('Found Draw.io executable for platform "{}" at "{}"'.format(
-                        sys.platform, executable_path))
+                    sys.platform, 
+                    executable_path
+                ))
                 return executable_path
 
-        raise ConfigurationError.drawio_executable(
+        return None
+    
+    def __validate(self):
+
+        if self.embed_format == 'html' and self.format != 'svg':
+            raise ConfigurationError(
+                'embed_format', 
+                self.embed_format, 
+                'you must to set "format: svg" with the "embed_format: html".'
+            )
+
+        if not self.drawio_executable:
+            raise ConfigurationError.drawio_executable(
                 None, 
                 'Unable to find Draw.io executable; ensure it\'s on PATH or set drawio_executable option'
-        )
+            )
+
+        if not os.path.isfile(self.drawio_executable) and not shutil.which(self.drawio_executable):
+            raise ConfigurationError.drawio_executable(self.drawio_executable, "executable didn't exist")
 
     def get_executable_paths(self) -> (list[str] | None):
         """Get the Draw.io executable paths for the platform.
@@ -300,12 +316,14 @@ class DrawIoExporter:
                 img_src = "{}-{}.{}".format(source.source_embed, source.page_index, self.format)
 
                 if self.embed_format == "html":
+                    
                     path = os.path.abspath(
                         os.path.join(
                             self.site_dir, 
                             "{}/{}".format(content_path[:content_path.rindex("/")], img_src)
                         )
                     )
+
                     return open(path, 'r').read()
 
                 return self.embed_format.format(
@@ -344,7 +362,7 @@ class DrawIoExporter:
                 return (None, exit_status)
 
             self.logger.debug('Exporting "{}" to "{}"'.format(source, cache_filename))
-            exit_status = self.export_file(source, page_index, cache_filename, self.drawio_executable, self.drawio_args, self.format)
+            exit_status = self.export_file(source, page_index, cache_filename)
 
         return (cache_filename, exit_status)
 
@@ -370,25 +388,23 @@ class DrawIoExporter:
         return os.path.exists(cache_filename) \
                 and os.path.getmtime(cache_filename) >= os.path.getmtime(source)
 
-    def export_file(self, source, page_index, dest, drawio_executable, drawio_args, format):
+    def export_file(self, source, page_index, dest):
         """Export an individual file.
 
         :param str source: Source path, absolute.
         :param int page_index: Page index, numbered from zero.
         :param str dest: Destination path, within cache.
-        :param str drawio_executable: Path to the configured Draw.io executable.
-        :param list(str) drawio_args: Additional arguments to append to the Draw.io export command.
-        :param str format: Desired export format.
+        
         :return int: The Draw.io exit status.
         """
         cmd = [
-            drawio_executable,
+            self.drawio_executable,
             '--export', source,
             '--page-index', str(page_index),
             '--output', dest,
-            '--format', format,
+            '--format', self.format,
         ]
-        cmd += drawio_args
+        cmd += self.drawio_args
 
         try:
             self.logger.debug('Using export command {}'.format(cmd))
