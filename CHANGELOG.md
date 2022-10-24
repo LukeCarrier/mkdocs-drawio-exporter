@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.0: embed format http
+
+* Allow embedding SVGs inside the HTML document
+
 ## 0.8.0: embed modes for SVG
 
 * Allow embedding SVGs inline or with `<object>`
