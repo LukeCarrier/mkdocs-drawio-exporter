@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.9.0: embed format http
+## 0.9.1: embed format http
 
 * Allow embedding SVGs inside the HTML document
 
