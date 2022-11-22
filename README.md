@@ -52,6 +52,9 @@ plugins:
         #     value of the src attribute.
         #   * Consider <object type="image/svg+xml" data="{img_src}"></object>
         #     to enable interactive elements (like hyperlinks) in SVGs.
+        #   * Use "embed_format: html" with "format: svg" if you want to 
+        #     copy entire SVG contents into the HTML documents. It enable
+        #     interactive elements (like hyperlinks) in SVGs too.
         embed_format: '{img_open}{img_src}{img_close}'
         # Glob pattern for matching source files
         sources: '*.drawio'
