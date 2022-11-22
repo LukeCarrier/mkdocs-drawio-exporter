@@ -250,7 +250,7 @@ class DrawIoExporter:
         if not os.path.isfile(self.drawio_executable) and not shutil.which(self.drawio_executable):
             raise ConfigurationError.drawio_executable(self.drawio_executable, "executable didn't exist")
 
-    def get_executable_paths(self) -> (list[str] | None):
+    def get_executable_paths(self) -> list[str]:
         """Get the Draw.io executable paths for the platform.
 
         Declared as a function to allow us to use API/environment information
