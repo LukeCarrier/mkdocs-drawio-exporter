@@ -320,7 +320,10 @@ class DrawIoExporter:
                     path = os.path.abspath(
                         os.path.join(
                             self.site_dir, 
-                            "{}/{}".format(content_path[:content_path.rindex("/")], img_src)
+                            "{}{}".format(
+                                content_path[:content_path.rindex("/") + 1] if content_path.rfind("/") > 0 else "", 
+                                img_src
+                            )
                         )
                     )
 
