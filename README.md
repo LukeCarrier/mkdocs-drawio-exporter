@@ -115,7 +115,8 @@ plugins:
 To get completion working in your editor, set up a virtual environment in the root of this repository and install MkDocs:
 
 ```
-$ pip3 install --user --upgrade setuptools twine wheel
+$ pip3 install --user --upgrade setuptools wheel
+$ pipx install twine
 $ python3 -m venv venv
 $ . venv/bin/activate
 $ pip install -r requirements.txt
