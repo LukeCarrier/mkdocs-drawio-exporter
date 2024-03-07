@@ -115,40 +115,31 @@ plugins:
 To get completion working in your editor, set up a virtual environment in the root of this repository and install MkDocs:
 
 ```
-$ pip3 install --user --upgrade setuptools wheel
+$ pip3 install --user --upgrade wheel
 $ pipx install twine
-$ python3 -m venv venv
-$ . venv/bin/activate
-$ pip install -r requirements.txt
+$ poetry install
 ```
 
 To install the plugin onto a local MkDocs site in editable form:
 
 ```
-$ pip install --editable /path/to/mkdocs-drawio-exporter
+$ poetry add --editable /path/to/mkdocs-drawio-exporter
 ```
 
-Note that you'll need to repeat this step if you make any changes to the `entry_points` listed in `setup.py`.
+Note that you'll need to repeat this step if you make any changes to the `[tool.poetry.plugins.*]` sections listed in `pyproject.toml`.
 
-Run the tests with the Python `unittest` module:
+Run the tests with the `test` script:
 
 ```
-$ python -m unittest mkdocsdrawioexporter.tests
+$ poetry run test
 ```
 
 ## Upgrading dependencies
 
-To upgrade the dependencies, install `pip-upgrader`:
+To upgrade the dependencies, first make any necessary changes to the constraints expressed in the `[tool.poetry.dependencies]` section of `pyproject.toml`, then have Poetry update them:
 
-```console
-. venv/bin/activate
-pip install -r requirements.dev.txt
 ```
-
-Then proceed to update the dependencies:
-
-```console
-pip-upgrade requirements.dev.txt
+$ poetry update
 ```
 
 ## Releasing
@@ -156,13 +147,13 @@ pip-upgrade requirements.dev.txt
 Build the distributable package:
 
 ```
-$ python3 setup.py sdist bdist_wheel
+$ poetry build
 ```
 
 Push it to the PyPI test instance:
 
 ```
-$ python3 -m twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+$ twine upload --repository-url https://test.pypi.org/legacy/ dist/*
 ```
 
 Test it inside a virtual environment:
@@ -174,5 +165,5 @@ $ pip install --index-url https://test.pypi.org/simple/ --no-deps mkdocs-drawio-
 Let's go live:
 
 ```
-$ python3 -m twine upload dist/*
+$ twine upload dist/*
 ```
