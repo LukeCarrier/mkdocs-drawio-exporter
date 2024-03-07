@@ -17,7 +17,6 @@ jobs:
 
       matrix:
         drawio-version: [23.1.5]
-        python-version: [3.12]
         os:
           - macos-latest
           - ubuntu-latest
@@ -70,16 +69,18 @@ jobs:
           $proc = Start-Process  "./${drawioExe}" "/S", "/allusers"
           $proc | Wait-Process
 
+      # Counterintuitively, we need to install Poetry before Python, because we source the Python
+      # version from pyproject.toml. The runner's default version of Python should be okay here.
+      - name: Install Poetry
+        run: pipx install poetry
+
       - name: Install Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Upgrade Pip
-        run: python -m pip install --upgrade pip
-
-      - name: Install dependencies
-        run: python -m pip install --requirement requirements.txt
+          cache: poetry
+          python-version-file: pyproject.toml
 
       - name: Run tests
-        run: python -m unittest mkdocsdrawioexporter.tests
+        run: |
+          poetry install
+          poetry run test
