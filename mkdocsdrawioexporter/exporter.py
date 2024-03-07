@@ -7,7 +7,7 @@ import subprocess
 import sys
 
 
-IMAGE_RE = re.compile('(<img[^>]+src=")([^">]+)("\s*\/?>)')
+IMAGE_RE = re.compile('(<img[^>]+src=")([^">]+)("\\s*\\/?>)')
 
 
 class ConfigurationError(Exception):
