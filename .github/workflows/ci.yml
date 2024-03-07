@@ -16,20 +16,20 @@ jobs:
       fail-fast: false
 
       matrix:
-        drawio-version: [14.5.1]
-        python-version: [3.9]
+        drawio-version: [23.1.5]
+        python-version: [3.12]
         os:
           - macos-latest
           - ubuntu-latest
           - windows-latest
         include:
           - os: ubuntu-latest
-            drawio-version: 14.5.1
+            drawio-version: 23.1.5
             drawio-arch: amd64
-            drawio-sha256sum: 0cabdf1e9a051fc38672a9233b1b2d5368d2a776fe3d3f5e09a823278b899976
+            drawio-sha256sum: 29a4a2acacd1388bcd23692b151f34422a94966099cab31ae57ef69a1c01d3a6
           - os: windows-latest
-            drawio-version: 14.5.1
-            drawio-sha256sum: 6f5ff0aa7ef5bd4b71d1c38ba37fbe9a6afcf9eaa9e5bb648669c93e18f98dc1
+            drawio-version: 23.1.5
+            drawio-sha256sum: 2f9877e47bdcb7fbb0a37bc7338b057109652c33df7d5fa63a3f57e5e49bef77
 
     timeout-minutes: 10
 
@@ -37,11 +37,8 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Install Draw.io Desktop (macOS)
-        if: runner.os == 'macOS'
-        run: brew install drawio
       - name: Install Draw.io Desktop (Linux)
         if: runner.os == 'Linux'
         run: |
@@ -51,14 +48,17 @@ jobs:
           curl -L -o "$drawio_deb" "$drawio_url"
           sha256sum --check <<<"${{ matrix.drawio-sha256sum }}  $drawio_deb"
           sudo apt-get install -y libasound2 xvfb ./"$drawio_deb"
+      - name: Install Draw.io Desktop (macOS)
+        if: runner.os == 'macOS'
+        run: brew install drawio
       - name: Install Draw.io Desktop (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
           Set-StrictMode -Version Latest
           $ErrorActionPreference = "Stop"
-          $drawioUrl = "https://github.com/jgraph/drawio-desktop/releases/download/v${{ matrix.drawio-version }}/draw.io-${{ matrix.drawio-version }}.exe"
-          $drawioExe = "draw.io-${{ matrix.drawio-version }}.exe"
+          $drawioUrl = "https://github.com/jgraph/drawio-desktop/releases/download/v${{ matrix.drawio-version }}/draw.io-${{ matrix.drawio-version }}-windows-installer.exe"
+          $drawioExe = "draw.io-${{ matrix.drawio-version }}-windows-installer.exe"
           $expectedChecksum = "${{ matrix.drawio-sha256sum }}".ToUpper()
           $client = New-Object System.Net.WebClient
           $client.DownloadFile($drawioUrl, $drawioExe)
@@ -71,7 +71,7 @@ jobs:
           $proc | Wait-Process
 
       - name: Install Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
