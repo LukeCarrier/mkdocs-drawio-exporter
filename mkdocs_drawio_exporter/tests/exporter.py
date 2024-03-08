@@ -27,9 +27,9 @@ class ExporterTests(unittest.TestCase):
         self.exporter = DrawIoExporter(self.log)
 
     def test_drawio_executable_paths_warns_on_unknown_platform(self):
-        self.log.warn = MagicMock()
+        self.log.warning = MagicMock()
         self.exporter.drawio_executable_paths('win32-but-stable')
-        self.log.warn.assert_called_once()
+        self.log.warning.assert_called_once()
 
     def test_prepare_cache_dir_defaults(self):
         assert len(self.exporter.prepare_cache_dir(None, sep + 'docs'))
@@ -138,13 +138,13 @@ class ExporterTests(unittest.TestCase):
         self.exporter.export_file = MagicMock()
         self.exporter.export_file.return_value = 0
 
-        self.log.warn = MagicMock()
+        self.log.warning = MagicMock()
 
         cache_filename, exit_status = self.exporter.ensure_file_cached(
                 source, source_rel, 0, drawio_executable, [], cache_dir, 'svg')
 
         assert exit_status == None
-        self.log.warn.assert_called_once()
+        self.log.warning.assert_called_once()
 
     def test_ensure_file_cached_skips_export_if_cache_fresh(self):
         source = sep + join('docs', 'diagram.drawio')

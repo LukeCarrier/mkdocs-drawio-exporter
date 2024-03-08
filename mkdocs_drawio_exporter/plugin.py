@@ -91,4 +91,4 @@ class DrawIoExporterPlugin(mkdocs.plugins.BasePlugin):
             try:
                 copy_file(cache_filename, abs_dest_path)
             except FileNotFoundError:
-                log.warn('Export successful, but wrote no output file')
+                log.warning('Export successful, but wrote no output file')

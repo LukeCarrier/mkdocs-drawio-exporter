@@ -159,7 +159,7 @@ class DrawIoExporter:
                 program_files.append(os.environ['ProgramFiles(x86)'])
             return [os.path.join(dir, 'draw.io', 'draw.io.exe') for dir in program_files]
         else:
-            self.log.warn('Draw.io executable paths not known for platform "{}"'.format(platform))
+            self.log.warning('Draw.io executable paths not known for platform "{}"'.format(platform))
 
     def prepare_cache_dir(self, cache_dir, docs_dir):
         """Ensure the cache path is set, absolute and exists.
@@ -264,7 +264,7 @@ class DrawIoExporter:
             self.log.debug('Source file appears unchanged; using cached copy from "{}"'.format(cache_filename))
         else:
             if not drawio_executable:
-                self.log.warn('Skipping export of "{}" as Draw.io executable not available'.format(source))
+                self.log.warning('Skipping export of "{}" as Draw.io executable not available'.format(source))
                 return (None, exit_status)
 
             self.log.debug('Exporting "{}" to "{}"'.format(source, cache_filename))
