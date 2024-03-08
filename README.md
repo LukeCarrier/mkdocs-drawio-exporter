@@ -28,7 +28,7 @@ plugins:
     - drawio-exporter
 ```
 
-You can override the default configuration:
+You can override the default configuration; values shown are defaults:
 
 ```yaml
 plugins:
