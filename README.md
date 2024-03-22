@@ -44,6 +44,7 @@ plugins:
         # paths. If we can't find it we'll warn you.
         drawio_executable: null
         # Additional Draw.io CLI args
+        #   * --embed-svg-images will embed external images in SVGS, if format is "svg".
         drawio_args: []
         # Output format (see draw.io --help | grep format)
         format: svg
