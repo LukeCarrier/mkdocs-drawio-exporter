@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.0: maintainer guilt
+
+* Migrate to Poetry for dependency management
+* Update all of our ailing dependencies
+* Use `Logger.warning` over `Logger.warn` to fix deprecation warnings
+* Document `--embed-svg-images` for shape libraries
+
 ## 0.8.0: embed modes for SVG
 
 * Allow embedding SVGs inline or with `<object>`
