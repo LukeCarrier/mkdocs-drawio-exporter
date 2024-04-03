@@ -48,9 +48,9 @@ class DrawIoExporterPlugin(mkdocs.plugins.BasePlugin):
 
         os.makedirs(self.config['cache_dir'], exist_ok=True)
 
-        log.debug('Using Draw.io executable "{}", arguments {} and cache directory "{}"'.format(
-                self.config['drawio_executable'], self.config['drawio_args'],
-                self.config['cache_dir']))
+        log.debug(f'Using Draw.io executable "{self.config['drawio_executable']}", '
+                f'arguments {self.config['drawio_args']} and '
+                f'cache directory "{self.config['cache_dir']}"')
 
     def on_post_page(self, output_content, page, **kwargs):
         output_content, content_sources = self.exporter.rewrite_image_embeds(
@@ -65,18 +65,17 @@ class DrawIoExporterPlugin(mkdocs.plugins.BasePlugin):
 
     def on_files(self, files, config):
         keep = self.exporter.filter_cache_files(files, self.config['cache_dir'])
-        log.debug('{} files left after excluding cache'.format(len(keep)))
+        log.debug(f'{len(keep)} files left after excluding cache')
 
         return Files(keep)
 
     def on_post_build(self, config):
         sources = set(self.sources)
-        log.debug('Found {} unique sources in {} total embeds'.format(len(sources), len(self.sources)))
+        log.debug(f'Found {len(sources)} unique sources in {len(self.sources)} total embeds')
         self.sources = []
 
         for source in sources:
-            dest_rel_path = '{}-{}.{}'.format(
-                    source.source_rel, source.page_index, self.config['format'])
+            dest_rel_path = f'{source.source_rel}-{source.page_index}.{self.config['format']}'
             abs_src_path = os.path.join(config['docs_dir'], source.source_rel)
             abs_dest_path = os.path.join(config['site_dir'], dest_rel_path)
             cache_filename, exit_status = self.exporter.ensure_file_cached(
@@ -85,7 +84,7 @@ class DrawIoExporterPlugin(mkdocs.plugins.BasePlugin):
                     self.config['cache_dir'], self.config['format'])
 
             if exit_status not in (None, 0):
-                log.error('Export failed with exit status {}; skipping copy'.format(exit_status))
+                log.error(f'Export failed with exit status {exit_status}; skipping copy')
                 continue
 
             try:
