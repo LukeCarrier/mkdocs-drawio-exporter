@@ -218,7 +218,7 @@ class ExporterTests(unittest.TestCase):
             elif path == source:
                 return 1577133635.3318102
             else:
-                raise ValueError('didn\'t expect path "{}"'.format(path))
+                raise ValueError(f'didn\'t expect path "{path}"')
         getmtime_mock.side_effect = getmtime_return_value
 
         result = self.exporter.use_cached_file(source, cache_filename)

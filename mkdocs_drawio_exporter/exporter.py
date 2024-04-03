@@ -45,8 +45,7 @@ class ConfigurationError(Exception):
         Exception.__init__(self, self.message)
 
     def __str__(self):
-        return 'drawio-exporter: value "{}" for key "{}" is invalid: {}'.format(
-                self.value, self.key, self.message)
+        return f'drawio-exporter: value "{self.value}" for key "{self.key}" is invalid: {self.message}'
 
     def drawio_executable(value, message):
         """Raise an error for a misconfigured Draw.io path.
@@ -159,7 +158,7 @@ class DrawIoExporter:
                 program_files.append(os.environ['ProgramFiles(x86)'])
             return [os.path.join(dir, 'draw.io', 'draw.io.exe') for dir in program_files]
         else:
-            self.log.warning('Draw.io executable paths not known for platform "{}"'.format(platform))
+            self.log.warning(f'Draw.io executable paths not known for platform "{platform}"')
 
     def prepare_cache_dir(self, cache_dir, docs_dir):
         """Ensure the cache path is set, absolute and exists.
@@ -191,15 +190,14 @@ class DrawIoExporter:
         for name in executable_names:
             executable = shutil.which(name)
             if executable:
-                self.log.debug('Found Draw.io executable "{}" at "{}"'.format(name, executable))
+                self.log.debug(f'Found Draw.io executable "{name}" at "{executable}"')
                 return executable
 
         candidates = platform_executable_paths
-        self.log.debug('Trying paths {} for platform "{}"'.format(candidates, sys.platform))
+        self.log.debug(f'Trying paths {candidates} for platform "{sys.platform}"')
         for candidate in candidates:
             if os.path.isfile(candidate):
-                self.log.debug('Found Draw.io executable for platform "{}" at "{}"'.format(
-                        sys.platform, candidate))
+                self.log.debug(f'Found Draw.io executable for platform "{sys.platform}" at "{candidate}"')
                 return candidate
 
         raise ConfigurationError.drawio_executable(
@@ -225,7 +223,7 @@ class DrawIoExporter:
 
             if fnmatch.fnmatch(filename, sources):
                 content_sources.append(Source(filename, page_index))
-                img_src = "{}-{}.{}".format(filename, page_index, format)
+                img_src = f"{filename}-{page_index}.{format}"
 
                 return embed_format.format(
                         img_open=match.group(1), img_close=match.group(3),
@@ -261,13 +259,13 @@ class DrawIoExporter:
         exit_status = None
 
         if self.use_cached_file(source, cache_filename):
-            self.log.debug('Source file appears unchanged; using cached copy from "{}"'.format(cache_filename))
+            self.log.debug(f'Source file appears unchanged; using cached copy from "{cache_filename}"')
         else:
             if not drawio_executable:
-                self.log.warning('Skipping export of "{}" as Draw.io executable not available'.format(source))
+                self.log.warning(f'Skipping export of "{source}" as Draw.io executable not available')
                 return (None, exit_status)
 
-            self.log.debug('Exporting "{}" to "{}"'.format(source, cache_filename))
+            self.log.debug(f'Exporting "{source}" to "{cache_filename}"')
             exit_status = self.export_file(
                     source, page_index, cache_filename,
                     drawio_executable, drawio_args, format)
@@ -282,8 +280,8 @@ class DrawIoExporter:
         :param str cache_dir: Export cache directory.
         :return str: Resulting filename.
         """
-        basename = '{}-{}'.format(
-                hashlib.sha1(source.encode('utf-8')).hexdigest(), page_index)
+        filename_hash = hashlib.sha1(source.encode('utf-8')).hexdigest()
+        basename = f'{filename_hash}-{page_index}'
         return os.path.join(cache_dir, basename)
 
     def use_cached_file(self, source, cache_filename):
@@ -317,7 +315,7 @@ class DrawIoExporter:
         cmd += drawio_args
 
         try:
-            self.log.debug('Using export command {}'.format(cmd))
+            self.log.debug(f'Using export command {cmd}')
             return subprocess.call(cmd)
         except:
             self.log.exception('Subprocess raised exception')
