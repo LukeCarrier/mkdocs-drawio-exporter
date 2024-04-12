@@ -5,9 +5,27 @@ import re
 import shutil
 import subprocess
 import sys
+from typing import TypedDict
 
 
 IMAGE_RE = re.compile('(<img[^>]+src=")([^">]+)("\\s*\\/?>)')
+
+
+class Configuration(TypedDict):
+    """Draw.io Exporter MkDocs plugin configuration.
+
+    Contains the resolved configuration values, including defaults and any
+    computed values (such as paths to binaries).
+
+    Seems ugly to shadow BasePlugin.config_scheme, but improves type hints and
+    allows us to more easily pass configuration around."""
+
+    cache_dir: str
+    drawio_executable: str
+    drawio_args: list[str]
+    format: str
+    embed_format: str
+    sources: str
 
 
 class ConfigurationError(Exception):
@@ -203,7 +221,7 @@ class DrawIoExporter:
         raise ConfigurationError.drawio_executable(
                 None, 'Unable to find Draw.io executable; ensure it\'s on PATH or set drawio_executable option')
 
-    def rewrite_image_embeds(self, output_content, sources, format, embed_format):
+    def rewrite_image_embeds(self, output_content, config: Configuration):
         """Rewrite image embeds.
 
         :param str output_content: Content to rewrite.
@@ -221,11 +239,11 @@ class DrawIoExporter:
                 filename = match.group(2)
                 page_index = 0
 
-            if fnmatch.fnmatch(filename, sources):
+            if fnmatch.fnmatch(filename, config["sources"]):
                 content_sources.append(Source(filename, page_index))
-                img_src = f"{filename}-{page_index}.{format}"
+                img_src = f"{filename}-{page_index}.{config["format"]}"
 
-                return embed_format.format(
+                return config["embed_format"].format(
                         img_open=match.group(1), img_close=match.group(3),
                         img_src=img_src)
             else:
@@ -243,7 +261,7 @@ class DrawIoExporter:
         """
         return [f for f in files if not f.abs_src_path.startswith(cache_dir)]
 
-    def ensure_file_cached(self, source, source_rel, page_index, drawio_executable, drawio_args, cache_dir, format):
+    def ensure_file_cached(self, source, source_rel, page_index, config: Configuration):
         """Ensure cached copy of output exists.
 
         :param str source: Source path, absolute.
@@ -255,20 +273,19 @@ class DrawIoExporter:
         :param str format: Desired export format.
         :return tuple(str, int): Cached export filename.
         """
-        cache_filename = self.make_cache_filename(source_rel, page_index, cache_dir)
+        cache_filename = self.make_cache_filename(source_rel, page_index, config['cache_dir'])
         exit_status = None
 
         if self.use_cached_file(source, cache_filename):
             self.log.debug(f'Source file appears unchanged; using cached copy from "{cache_filename}"')
         else:
-            if not drawio_executable:
+            if not config['drawio_executable']:
                 self.log.warning(f'Skipping export of "{source}" as Draw.io executable not available')
                 return (None, exit_status)
 
             self.log.debug(f'Exporting "{source}" to "{cache_filename}"')
             exit_status = self.export_file(
-                    source, page_index, cache_filename,
-                    drawio_executable, drawio_args, format)
+                    source, page_index, cache_filename, config)
 
         return (cache_filename, exit_status)
 
@@ -294,7 +311,7 @@ class DrawIoExporter:
         return os.path.exists(cache_filename) \
                 and os.path.getmtime(cache_filename) >= os.path.getmtime(source)
 
-    def export_file(self, source, page_index, dest, drawio_executable, drawio_args, format):
+    def export_file(self, source, page_index, dest, config: Configuration):
         """Export an individual file.
 
         :param str source: Source path, absolute.
@@ -306,13 +323,13 @@ class DrawIoExporter:
         :return int: The Draw.io exit status.
         """
         cmd = [
-            drawio_executable,
+            config['drawio_executable'],
             '--export', source,
             '--page-index', str(page_index),
             '--output', dest,
-            '--format', format,
+            '--format', config['format'],
         ]
-        cmd += drawio_args
+        cmd += config['drawio_args']
 
         try:
             self.log.debug(f'Using export command {cmd}')

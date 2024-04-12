@@ -6,7 +6,7 @@ import os
 from os.path import isabs, join, sep
 import re
 
-from ..exporter import ConfigurationError, DrawIoExporter
+from ..exporter import Configuration, ConfigurationError, DrawIoExporter
 
 
 class FileMock:
@@ -25,6 +25,20 @@ class ExporterTests(unittest.TestCase):
     def setUp(self):
         self.log = logging.getLogger(__name__)
         self.exporter = DrawIoExporter(self.log)
+
+    def make_config(self, **kwargs):
+        defaults = {
+            'cache_dir': 'drawio-exporter',
+            'drawio_executable': 'drawio',
+            'drawio_args': [],
+            'format': 'svg',
+            'embed_format': '{img_open}{img_src}{img_close}',
+            'sources': '*.drawio',
+        }
+        # FIXME: when dropping support for Python 3.8, replace with the merge
+        # operator (|).
+        values = {**defaults, **kwargs}
+        return Configuration(**values)
 
     def test_drawio_executable_paths_warns_on_unknown_platform(self):
         self.log.warning = MagicMock()
@@ -77,23 +91,24 @@ class ExporterTests(unittest.TestCase):
     def test_rewrite_image_embeds(self):
         source = '''<h1>Example text</h1>
 <img alt="Some text" src="../some-diagram.drawio" />'''
-
-        default_embed_format = '{img_open}{img_src}{img_close}'
         object_embed_format = '<object type="image/svg+xml" data="{img_src}"></object>'
 
+        config = self.make_config(sources='*.nomatch')
         output_content, sources = self.exporter.rewrite_image_embeds(
-                source, '*.nomatch', 'svg', default_embed_format)
+                source, config)
         assert output_content == source
         assert sources == []
 
+        config = self.make_config()
         output_content, sources = self.exporter.rewrite_image_embeds(
-                source, '*.drawio', 'svg', default_embed_format)
+                source, config)
         assert output_content != source
         assert 'src="../some-diagram.drawio-0.svg"' in output_content
         assert len(sources) == 1
 
+        config = self.make_config(embed_format=object_embed_format)
         output_content, sources = self.exporter.rewrite_image_embeds(
-                source, '*.drawio', 'svg', object_embed_format)
+                source, config)
         assert output_content != source
         assert '<object type="image/svg+xml" data="../some-diagram.drawio-0.svg"></object>' in output_content
         assert len(sources) == 1
@@ -118,6 +133,11 @@ class ExporterTests(unittest.TestCase):
         drawio_executable = sep + join('bin', 'drawio')
         cache_dir = sep + join('docs', 'drawio-exporter')
 
+        config = self.make_config(
+            cache_dir=cache_dir,
+            drawio_executable=drawio_executable,
+        )
+
         self.exporter.make_cache_filename = MagicMock()
         self.exporter.make_cache_filename.return_value = join(cache_dir, '0000000000000000000000000000000000000000-0')
 
@@ -125,7 +145,7 @@ class ExporterTests(unittest.TestCase):
         self.exporter.export_file.return_value = 0
 
         cache_filename, exit_status = self.exporter.ensure_file_cached(
-                source, source_rel, 0, drawio_executable, [], cache_dir, 'svg')
+                source, source_rel, 0, config)
         assert cache_filename == self.exporter.make_cache_filename.return_value
         assert exit_status == 0
 
@@ -135,13 +155,18 @@ class ExporterTests(unittest.TestCase):
         drawio_executable = None
         cache_dir = sep + join('docs', 'drawio-exporter')
 
+        config = self.make_config(
+            cache_dir=cache_dir,
+            drawio_executable=drawio_executable,
+        )
+
         self.exporter.export_file = MagicMock()
         self.exporter.export_file.return_value = 0
 
         self.log.warning = MagicMock()
 
         cache_filename, exit_status = self.exporter.ensure_file_cached(
-                source, source_rel, 0, drawio_executable, [], cache_dir, 'svg')
+                source, source_rel, 0, config)
 
         assert exit_status == None
         self.log.warning.assert_called_once()
@@ -151,6 +176,11 @@ class ExporterTests(unittest.TestCase):
         source_rel = 'diagram.drawio'
         drawio_executable = sep + join('bin', 'drawio')
         cache_dir = sep + join('docs', 'drawio-exporter')
+
+        config = self.make_config(
+            cache_dir=cache_dir,
+            drawio_executable=drawio_executable,
+        )
 
         self.exporter.make_cache_filename = MagicMock()
         self.exporter.make_cache_filename.return_value = join(cache_dir, '0000000000000000000000000000000000000000-0')
@@ -162,7 +192,7 @@ class ExporterTests(unittest.TestCase):
         self.exporter.export_file.return_value = 0
 
         cache_filename, exit_status = self.exporter.ensure_file_cached(
-                source, source_rel, 0, drawio_executable, [], cache_dir, 'svg')
+                source, source_rel, 0, config)
 
         assert cache_filename == self.exporter.make_cache_filename.return_value
         assert exit_status == None
@@ -174,6 +204,11 @@ class ExporterTests(unittest.TestCase):
         source_rel = 'diagram.drawio'
         drawio_executable = sep + join('bin', 'drawio')
         cache_dir = sep + join('docs', 'drawio-exporter')
+
+        config = self.make_config(
+            cache_dir=cache_dir,
+            drawio_executable=drawio_executable,
+        )
 
         self.exporter.make_cache_filename = MagicMock()
         self.exporter.make_cache_filename.return_value = join(cache_dir, '0000000000000000000000000000000000000000-0')
@@ -187,7 +222,7 @@ class ExporterTests(unittest.TestCase):
         self.log.error = MagicMock()
 
         cache_filename, exit_status = self.exporter.ensure_file_cached(
-                source, source_rel, 0, drawio_executable, [], cache_dir, 'svg')
+                source, source_rel, 0, config)
 
         assert exit_status == 1
 
@@ -230,10 +265,14 @@ class ExporterTests(unittest.TestCase):
         dest = sep + join('docs', 'diagram.drawio-0.svg')
         drawio_executable = sep + join('bin', 'drawio')
 
+        config = self.make_config(
+            drawio_executable=drawio_executable,
+        )
+
         call_mock.return_value = 0
 
         result = self.exporter.export_file(
-                source, 0, dest, drawio_executable, [], 'svg')
+                source, 0, dest, config)
 
         assert result == 0
         call_mock.assert_called_once()
@@ -244,12 +283,16 @@ class ExporterTests(unittest.TestCase):
         dest = sep + join('docs', 'diagram.drawio-0.svg')
         drawio_executable = sep + join('bin', 'drawio')
 
+        config = self.make_config(
+            drawio_executable=drawio_executable,
+        )
+
         call_mock.side_effect = OSError()
 
         self.log.exception = MagicMock()
 
         result = self.exporter.export_file(
-                source, 0, dest, drawio_executable, [], 'svg')
+                source, 0, dest, config)
 
         assert result == None
         self.log.exception.assert_called_once()
@@ -261,21 +304,26 @@ class ExporterTests(unittest.TestCase):
         page_index = 0
         dest = sep + join('docs', 'diagram.drawio-0.svg')
         drawio_executable = sep + join('bin', 'drawio')
-        format = 'svg'
 
-        def test_drawio_args(drawio_args):
+        config = self.make_config(
+            drawio_executable=drawio_executable,
+            format='svg'
+        )
+
+        def test_drawio_args(config: Configuration, drawio_args):
+            test_config = {**config, 'drawio_args': drawio_args}
             self.exporter.export_file(
-                    source, page_index, dest, drawio_executable, drawio_args, format)
+                    source, page_index, dest, test_config)
             call_mock.assert_called_with([
-                drawio_executable,
+                config['drawio_executable'],
                 '--export', source,
                 '--page-index', str(page_index),
                 '--output', dest,
-                '--format', format,
+                '--format', config['format'],
             ] + drawio_args)
 
-        test_drawio_args([])
-        test_drawio_args(['--no-sandbox'])
+        test_drawio_args(config, [])
+        test_drawio_args(config, ['--no-sandbox'])
 
 
 if __name__ == '__main__':

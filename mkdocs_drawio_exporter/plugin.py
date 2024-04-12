@@ -7,7 +7,7 @@ import mkdocs.plugins
 from mkdocs.structure.files import Files
 from mkdocs.utils import copy_file
 
-from .exporter import ConfigurationError, DrawIoExporter, Source
+from .exporter import ConfigurationError, DrawIoExporter, Configuration
 
 
 log = mkdocs.plugins.log.getChild('drawio-exporter')
@@ -54,8 +54,7 @@ class DrawIoExporterPlugin(mkdocs.plugins.BasePlugin):
 
     def on_post_page(self, output_content, page, **kwargs):
         output_content, content_sources = self.exporter.rewrite_image_embeds(
-                output_content, self.config['sources'],
-                self.config['format'], self.config['embed_format'])
+                output_content, self.config)
 
         for source in content_sources:
             source.resolve_rel_path(page.file.dest_path)
@@ -80,8 +79,7 @@ class DrawIoExporterPlugin(mkdocs.plugins.BasePlugin):
             abs_dest_path = os.path.join(config['site_dir'], dest_rel_path)
             cache_filename, exit_status = self.exporter.ensure_file_cached(
                     abs_src_path, source.source_rel, source.page_index,
-                    self.config['drawio_executable'], self.config['drawio_args'],
-                    self.config['cache_dir'], self.config['format'])
+                    self.config)
 
             if exit_status not in (None, 0):
                 log.error(f'Export failed with exit status {exit_status}; skipping copy')
