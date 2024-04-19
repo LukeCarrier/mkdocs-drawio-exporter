@@ -119,6 +119,9 @@ class Source:
             'page_index', self.page_index,
         ))
 
+    def __repr__(self):
+        return f"Source({self.source_embed}, {self.page_index}, {self.source_rel})"
+
     def resolve_rel_path(self, page_dest_path):
         """Resolve the path of the source, relative to the documentation directory.
 
