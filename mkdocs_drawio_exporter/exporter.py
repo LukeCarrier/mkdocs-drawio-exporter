@@ -249,9 +249,16 @@ class DrawIoExporter:
                 content_sources.append(source)
                 img_src = f"{filename}-{page_index}.{config["format"]}"
 
+                # Read file content only if we actually need it
+                content = None
+                if "{content}" in config["embed_format"]:
+                    img_path = self.make_cache_filename(source.source_rel, page_index, config['cache_dir'])
+                    with open(img_path, "r") as f:
+                        content = f.read()
+
                 return config["embed_format"].format(
                         img_open=match.group(1), img_close=match.group(3),
-                        img_src=img_src)
+                        img_src=img_src, content=content)
             else:
                 return match.group(0)
         output_content = IMAGE_RE.sub(replace, output_content)
