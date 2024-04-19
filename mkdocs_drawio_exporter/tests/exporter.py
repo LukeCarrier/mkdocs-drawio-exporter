@@ -89,26 +89,27 @@ class ExporterTests(unittest.TestCase):
             self.exporter.prepare_drawio_executable(None, [], [])
 
     def test_rewrite_image_embeds(self):
+        page_dest_path = "index.html"
         source = '''<h1>Example text</h1>
 <img alt="Some text" src="../some-diagram.drawio" />'''
         object_embed_format = '<object type="image/svg+xml" data="{img_src}"></object>'
 
         config = self.make_config(sources='*.nomatch')
         output_content, sources = self.exporter.rewrite_image_embeds(
-                source, config)
+                page_dest_path, source, config)
         assert output_content == source
         assert sources == []
 
         config = self.make_config()
         output_content, sources = self.exporter.rewrite_image_embeds(
-                source, config)
+                page_dest_path, source, config)
         assert output_content != source
         assert 'src="../some-diagram.drawio-0.svg"' in output_content
         assert len(sources) == 1
 
         config = self.make_config(embed_format=object_embed_format)
         output_content, sources = self.exporter.rewrite_image_embeds(
-                source, config)
+                page_dest_path, source, config)
         assert output_content != source
         assert '<object type="image/svg+xml" data="../some-diagram.drawio-0.svg"></object>' in output_content
         assert len(sources) == 1
