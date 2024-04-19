@@ -54,10 +54,8 @@ class DrawIoExporterPlugin(mkdocs.plugins.BasePlugin):
 
     def on_post_page(self, output_content, page, **kwargs):
         output_content, content_sources = self.exporter.rewrite_image_embeds(
-                output_content, self.config)
+                page.file.dest_path, output_content, self.config)
 
-        for source in content_sources:
-            source.resolve_rel_path(page.file.dest_path)
         self.sources += content_sources
 
         return output_content

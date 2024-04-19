@@ -224,9 +224,10 @@ class DrawIoExporter:
         raise ConfigurationError.drawio_executable(
                 None, 'Unable to find Draw.io executable; ensure it\'s on PATH or set drawio_executable option')
 
-    def rewrite_image_embeds(self, output_content, config: Configuration):
+    def rewrite_image_embeds(self, page_dest_path, output_content, config: Configuration):
         """Rewrite image embeds.
 
+        :param str page_dest_path: Destination path.
         :param str output_content: Content to rewrite.
         :param str sources: Glob to match Draw.io diagram filenames.
         :param str format: Desired export format.
@@ -243,7 +244,9 @@ class DrawIoExporter:
                 page_index = 0
 
             if fnmatch.fnmatch(filename, config["sources"]):
-                content_sources.append(Source(filename, page_index))
+                source = Source(filename, page_index)
+                source.resolve_rel_path(page_dest_path)
+                content_sources.append(source)
                 img_src = f"{filename}-{page_index}.{config["format"]}"
 
                 return config["embed_format"].format(
