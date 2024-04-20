@@ -232,6 +232,17 @@ class DrawIoExporter:
         raise ConfigurationError.drawio_executable(
                 None, 'Unable to find Draw.io executable; ensure it\'s on PATH or set drawio_executable option')
 
+    def validate_config(self, config: Configuration):
+        """Validate the configuration.
+
+        :param dict config: Configuration.
+        :return bool: True if configuration is valid.
+        """
+        if '{content}' in config['embed_format'] and config['format'] != 'svg':
+            raise ConfigurationError(
+                    'embed_format', config['embed_format'],
+                    'cannot inline content of non-SVG format')
+
     def rewrite_image_embeds(self, page_dest_path, output_content, config: Configuration):
         """Rewrite image embeds.
 

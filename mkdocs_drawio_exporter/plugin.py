@@ -43,6 +43,7 @@ class DrawIoExporterPlugin(mkdocs.plugins.BasePlugin):
                     self.config['drawio_executable'],
                     DrawIoExporter.DRAWIO_EXECUTABLE_NAMES,
                     self.exporter.drawio_executable_paths(sys.platform))
+            self.exporter.validate_config(self.config)
         except ConfigurationError as e:
             raise mkdocs.exceptions.ConfigurationError(str(e))
 
