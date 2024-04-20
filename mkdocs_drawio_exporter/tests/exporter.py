@@ -3,8 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import logging
 import os
-from os.path import isabs, join, sep
-import re
+from os.path import join, sep
 
 from ..exporter import Configuration, ConfigurationError, DrawIoExporter
 
