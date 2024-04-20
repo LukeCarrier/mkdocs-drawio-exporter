@@ -257,10 +257,22 @@ class DrawIoExporter:
                 content_sources.append(source)
                 img_src = f"{filename}-{page_index}.{config["format"]}"
 
-                # Read file content only if we actually need it
+                # Cache the file on-demand and read file content only if we
+                # need to inline the file's content.
                 content = None
                 if "{content}" in config["embed_format"]:
-                    img_path = self.make_cache_filename(source.source_rel, page_index, config['cache_dir'])
+                    img_path = self.make_cache_filename(
+                            source.source_rel, page_index, config['cache_dir'])
+
+                    abs_src_path = os.path.join(self.docs_dir, source.source_rel)
+                    _, exit_status = self.ensure_file_cached(
+                            abs_src_path, source.source_rel, source.page_index,
+                            config)
+
+                    if exit_status not in (None, 0):
+                        self.log.error(f'Export failed with exit status {exit_status}; skipping rewrite')
+                        return match.group(0)
+
                     with open(img_path, "r") as f:
                         content = f.read()
 
