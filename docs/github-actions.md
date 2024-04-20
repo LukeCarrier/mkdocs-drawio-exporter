@@ -16,7 +16,7 @@ authors = ["Luke Carrier <luke@carrier.im>"]
 [tool.poetry.dependencies]
 python = "^3.10"
 mkdocs = "^1.3.0"
-mkdocs-drawio-exporter = "^0.8.0"
+mkdocs-drawio-exporter = "^0.9.0"
 
 [tool.poetry.dev-dependencies]
 
