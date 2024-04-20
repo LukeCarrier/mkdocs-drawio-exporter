@@ -43,16 +43,29 @@ on:
     branches:
       - master
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: 3.x
-      - name: Install Poetry
-        run: curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+      - name: Setup Poetry
+        uses: abatilo/actions-poetry@v2
       - name: Install Draw.io Desktop
         run: |
           set -euo pipefail
@@ -68,11 +81,21 @@ jobs:
           sha256sum --check <<<"${drawio_sha256sum}  $drawio_deb"
           sudo apt-get install -y libasound2 xvfb ./"$drawio_deb"
       - name: Install Python dependencies
-        run: |
-          source $HOME/.poetry/env
-          poetry install
-      - name: Build and publish
-        run: |
-          source $HOME/.poetry/env
-          xvfb-run -a poetry run mkdocs gh-deploy
+        run: poetry install
+      - name: Build
+        run: xvfb-run -a poetry run mkdocs build
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
 ```
