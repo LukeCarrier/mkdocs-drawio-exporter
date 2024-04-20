@@ -145,12 +145,20 @@ class DrawIoExporter:
     :type: logging.Logger
     """
 
-    def __init__(self, log):
+    docs_dir = None
+    """Draw.io docs_dir.
+
+    :type str:
+    """
+
+    def __init__(self, log, docs_dir):
         """Initialise.
 
         :param logging.Logger log: Where to log.
+        :param str docs_dir: MkDocs docs_dir.
         """
         self.log = log
+        self.docs_dir = docs_dir
 
     DRAWIO_EXECUTABLE_NAMES = ['drawio', 'draw.io']
     """Draw.io executable names."""
@@ -181,7 +189,7 @@ class DrawIoExporter:
         else:
             self.log.warning(f'Draw.io executable paths not known for platform "{platform}"')
 
-    def prepare_cache_dir(self, cache_dir, docs_dir):
+    def prepare_cache_dir(self, cache_dir):
         """Ensure the cache path is set, absolute and exists.
 
         :param str cache_dir: Configured cache directory.
@@ -191,7 +199,7 @@ class DrawIoExporter:
         if not cache_dir:
            cache_dir = 'drawio-exporter'
         if not os.path.isabs(cache_dir):
-            cache_dir = os.path.join(docs_dir, cache_dir)
+            cache_dir = os.path.join(self.docs_dir, cache_dir)
         return cache_dir
 
     def prepare_drawio_executable(self, executable, executable_names, platform_executable_paths):

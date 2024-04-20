@@ -34,10 +34,10 @@ class DrawIoExporterPlugin(mkdocs.plugins.BasePlugin):
     sources = []
 
     def on_config(self, config):
-        self.exporter = DrawIoExporter(log)
+        self.exporter = DrawIoExporter(log, config['docs_dir'])
 
         self.config['cache_dir'] = self.exporter.prepare_cache_dir(
-                self.config['cache_dir'], config['docs_dir'])
+                self.config['cache_dir'])
         try:
             self.config['drawio_executable'] = self.exporter.prepare_drawio_executable(
                     self.config['drawio_executable'],
