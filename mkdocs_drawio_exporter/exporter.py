@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import sys
 from typing import TypedDict
+import urllib.parse
 
 
 IMAGE_RE = re.compile('(<img[^>]+src=")([^">]+)("\\s*\\/?>)')
@@ -127,9 +128,10 @@ class Source:
 
         :param str page_dest_path: The destination path of the parent page.
         """
+        unescaped_source_embed = urllib.parse.unquote(self.source_embed)
         self.source_rel = os.path.normpath(os.path.join(
                 os.path.dirname(page_dest_path),
-                self.source_embed))
+                unescaped_source_embed))
 
 
 class DrawIoExporter:
