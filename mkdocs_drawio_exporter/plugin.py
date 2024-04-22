@@ -49,9 +49,9 @@ class DrawIoExporterPlugin(mkdocs.plugins.BasePlugin):
 
         os.makedirs(self.config['cache_dir'], exist_ok=True)
 
-        log.debug(f'Using Draw.io executable "{self.config['drawio_executable']}", '
-                f'arguments {self.config['drawio_args']} and '
-                f'cache directory "{self.config['cache_dir']}"')
+        log.debug(f'Using Draw.io executable "{self.config["drawio_executable"]}", '
+                f'arguments {self.config["drawio_args"]} and '
+                f'cache directory "{self.config["cache_dir"]}"')
 
     def on_post_page(self, output_content, page, **kwargs):
         output_content, content_sources = self.exporter.rewrite_image_embeds(
@@ -73,7 +73,7 @@ class DrawIoExporterPlugin(mkdocs.plugins.BasePlugin):
         self.sources = []
 
         for source in sources:
-            dest_rel_path = f'{source.source_rel}-{source.page_index}.{self.config['format']}'
+            dest_rel_path = f'{source.source_rel}-{source.page_index}.{self.config["format"]}'
             abs_src_path = os.path.join(config['docs_dir'], source.source_rel)
             abs_dest_path = os.path.join(config['site_dir'], dest_rel_path)
             cache_filename, exit_status = self.exporter.ensure_file_cached(
