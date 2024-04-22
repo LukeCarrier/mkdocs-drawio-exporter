@@ -268,7 +268,7 @@ class DrawIoExporter:
                 source = Source(filename, page_index)
                 source.resolve_rel_path(page_dest_path)
                 content_sources.append(source)
-                img_src = f"{filename}-{page_index}.{config["format"]}"
+                img_src = f"{filename}-{page_index}.{config['format']}"
 
                 # Cache the file on-demand and read file content only if we
                 # need to inline the file's content.
