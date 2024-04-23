@@ -1,3 +1,6 @@
+# FIXME: drop once we upgrade to Python 3.9
+from __future__ import annotations
+
 import fnmatch
 import hashlib
 import os.path
