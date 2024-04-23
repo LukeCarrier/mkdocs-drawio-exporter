@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.1: maintainer guilt 2: break the world boogaloo
+
+* Test the most crusty Python version we claim to support
+* Fix Python 3.8 regressions introduced in 0.9.0:
+  * Work around f-string substitution parsing limitation
+  * Fix type annotation breakage by importing `__future__.annotations`
+
 ## 0.9.0: maintainer guilt
 
 * Migrate to Poetry for dependency management
