@@ -1,0 +1,9 @@
+FROM mkdocs-example:0.1.0
+ARG mkdocs_uid
+ARG mkdocs_gid
+
+USER root
+COPY build.local.sh .
+RUN ["/bin/bash", "-x", "build.local.sh"]
+RUN rm -f build.local.sh
+USER mkdocs
