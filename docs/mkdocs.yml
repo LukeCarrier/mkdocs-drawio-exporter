@@ -1,0 +1,9 @@
+site_name: mkdocs-drawio-exporter example
+plugins:
+  - search
+  - drawio-exporter:
+      embed_format: "{content}"
+      drawio_args: [--no-sandbox, --disable-gpu]
+
+nav:
+  - Overview: README.md

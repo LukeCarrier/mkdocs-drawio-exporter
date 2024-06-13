@@ -1,0 +1,25 @@
+services:
+  mkdocs_build:
+    profiles: ["build"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        python_version: 3.12.4
+        drawio_version: 24.5.3
+      tags: ["mkdocs-example:0.1.0"]
+
+  mkdocs:
+    build:
+      context: .
+      dockerfile: Dockerfile.local
+      args:
+        mkdocs_uid: 501
+        mkdocs_gid: 20
+      tags: ["mkdocs-example:0.1.0-local"]
+    volumes:
+      - type: bind
+        source: .
+        target: /mkdocs
+    command: ["-v", "serve", "-a", "0.0.0.0:8000"]
+    ports: ["8000:8000"]

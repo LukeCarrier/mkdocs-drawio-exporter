@@ -8,3 +8,6 @@ __pycache__/
 /*.egg-info/
 /build/
 /dist/
+
+# Very meta
+/docs/docs/drawio-exporter/
