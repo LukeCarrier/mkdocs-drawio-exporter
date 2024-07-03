@@ -27,6 +27,7 @@ class DrawIoExporterPlugin(mkdocs.plugins.BasePlugin):
         ('format', config_options.Type(str, default='svg')),
         ('embed_format', config_options.Type(str, default='{img_open}{img_src}{img_close}')),
         ('sources', config_options.Type(str, default='*.drawio')),
+        ('link_css', config_options.Type(bool, default=False)),
     )
 
     exporter = None
