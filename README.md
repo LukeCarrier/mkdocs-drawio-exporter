@@ -59,8 +59,9 @@ plugins:
         embed_format: '{img_open}{img_src}{img_close}'
         # Glob pattern for matching source files
         sources: '*.drawio'
-        # Link draw.io colours with theme CSS
-        link_css: false
+        # Replace diagrams' default colors with the theme's
+        # NOTE: requires support from theme or custom CSS
+        use_theme_colors: false
 ```
 
 ## Usage
