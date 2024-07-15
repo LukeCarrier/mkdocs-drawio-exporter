@@ -84,7 +84,7 @@ The plugin will export the diagram to the `format` specified in your configurati
 
 If you want to source colors in your diagrams from your MkDocs theme or custom CSS, set `use_theme_colors` to `true` in your configuration. This will replace the colors in your diagrams with the colours defined in your theme or `extra_css`. This is useful if you want to ensure your diagrams match the look and feel of your documentation, especially when toggling between light and dark themes.
 
-You should define the colours in your custom CSS using the following classes:
+You should define the colors in your custom CSS with CSS variables, as follows:
 
 ```css
 :root {
