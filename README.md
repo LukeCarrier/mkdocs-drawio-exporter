@@ -107,7 +107,7 @@ You should define the colors in your custom CSS with CSS variables, as follows:
 To activate the custom CSS for some drawings only, you can use the `attr_list` option in your document:
 
 ```md
-![My alt text](my-diagram.drawio){ link_css=true|yes|1 }
+![My alt text](my-diagram.drawio){ use_theme_colors=true }
 ```
 
 ### GitHub Actions
