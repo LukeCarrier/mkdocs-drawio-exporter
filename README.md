@@ -59,6 +59,9 @@ plugins:
         embed_format: '{img_open}{img_src}{img_close}'
         # Glob pattern for matching source files
         sources: '*.drawio'
+        # Replace diagrams' default colors with the theme's
+        # NOTE: requires support from theme or custom CSS
+        use_theme_colors: false
 ```
 
 ## Usage
@@ -76,6 +79,36 @@ If you're working with multi-page documents, append the index of the page as an 
 ```
 
 The plugin will export the diagram to the `format` specified in your configuration and will rewrite the `<img>` tag in the generated page to match. To speed up your documentation rebuilds, the generated output will be placed into `cache_dir` and then copied to the desired destination. The cached images will only be updated if the source diagram's modification date is newer than the cached export. Thus, bear in mind caching works per file - with large multi-page documents a change to one page will rebuild all pages, which will be slower than separate files per page.
+
+### Linking draw.io colours with theme CSS
+
+If you want to source colors in your diagrams from your MkDocs theme or custom CSS, set `use_theme_colors` to `true` in your configuration. This will replace the colors in your diagrams with the colours defined in your theme or `extra_css`. This is useful if you want to ensure your diagrams match the look and feel of your documentation, especially when toggling between light and dark themes.
+
+You should define the colors in your custom CSS with CSS variables, as follows:
+
+```css
+:root {
+    /* First 8 colors in draw.io Style panel */
+    --drawio-color-ffffff: #000000;
+    --drawio-color-f5f5f5: #e9b3b3;
+    --drawio-color-dae8fc: #9bbbe7;
+    --drawio-color-d5e8d4: #75c770;
+    --drawio-color-ffe6cc: #cc9e6d;
+    --drawio-color-fff2cc: #dabd66;
+    --drawio-color-f8cecc: #b95c57;
+    --drawio-color-e1d5e7: #8c49ad;
+}
+
+[data-md-color-scheme="slate"] {
+    /* Same for dark theme */
+}
+```
+
+To activate the custom CSS for some drawings only, you can use the `attr_list` option in your document:
+
+```md
+![My alt text](my-diagram.drawio){ use_theme_colors=true }
+```
 
 ### GitHub Actions
 

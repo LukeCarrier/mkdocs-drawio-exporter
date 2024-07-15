@@ -248,6 +248,34 @@ class DrawIoExporter:
                     'embed_format', config['embed_format'],
                     'cannot inline content of non-SVG format')
 
+    def set_css_classes(self, svg_content, prefix="--drawio-color"):
+        """Rewrite SVG styles to use CSS variables.
+        Will replace all `stroke` and `fill` attributes with CSS variables
+        such as `var(--drawio-color-ffffff)`.
+
+        :param str svg_content: SVG content.
+        :param str prefix: CSS variable prefix.
+
+        :return str: SVG content with styles rewritten.
+        """
+        pattern = re.compile(
+            (r'(fill|stroke)\s*='
+             r'\s*\"(\#[A-Fa-f0-9]+|'
+             r'rgb\([0-9]{1,3}\s*,\s*[0-9]{1,3}\s*,\s*[0-9]{1,3}\))\"'))
+
+        def apply_style(match):
+            fill = match.group(2)
+            if fill.startswith("#"):
+                hexcolor = fill[1:]
+            else:
+                r, g, b = [
+                    int(x) for x in
+                    re.match(r"rgb\((\d+),\s*(\d+),\s*(\d+)\)", fill).groups()]
+                hexcolor = f"{r:02x}{g:02x}{b:02x}"
+            return f'{match.group(1)}="{f"var({prefix}-{hexcolor})"}"'
+
+        return pattern.sub(apply_style, svg_content)
+
     def rewrite_image_embeds(self, page_dest_path, output_content, config: Configuration):
         """Rewrite image embeds.
 
@@ -289,8 +317,11 @@ class DrawIoExporter:
                         self.log.error(f'Export failed with exit status {exit_status}; skipping rewrite')
                         return match.group(0)
 
-                    with open(img_path, "r") as f:
+                    with open(img_path, "r", encoding="utf-8") as f:
                         content = f.read()
+
+                    if config["use_theme_colors"] or not re.findall(r'use_theme_colors="(?:false|no|0)"', match.group(0)):
+                        content = self.set_css_classes(content)
 
                 return config["embed_format"].format(
                         img_open=match.group(1), img_close=match.group(3),
