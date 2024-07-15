@@ -82,7 +82,7 @@ The plugin will export the diagram to the `format` specified in your configurati
 
 ### Linking draw.io colours with theme CSS
 
-If you want to link the colours in your draw.io diagrams with your MkDocs theme CSS, set `link_css` to `true` in your configuration. This will replace the colours in your diagrams with the colours defined in your extra CSS. This is useful if you want to ensure your diagrams match the look and feel of your documentation, especially when toggling between light and dark themes.
+If you want to source colors in your diagrams from your MkDocs theme or custom CSS, set `use_theme_colors` to `true` in your configuration. This will replace the colors in your diagrams with the colours defined in your theme or `extra_css`. This is useful if you want to ensure your diagrams match the look and feel of your documentation, especially when toggling between light and dark themes.
 
 You should define the colours in your custom CSS using the following classes:
 
