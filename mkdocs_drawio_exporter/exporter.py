@@ -320,7 +320,7 @@ class DrawIoExporter:
                     with open(img_path, "r", encoding="utf-8") as f:
                         content = f.read()
 
-                    if config["link_css"] or re.findall(r'link_css="(?:true|yes|1)"', match.group(0)):
+                    if config["use_theme_colors"] or not re.findall(r'use_theme_colors="(?:false|no|0)"', match.group(0)):
                         content = self.set_css_classes(content)
 
                 return config["embed_format"].format(
