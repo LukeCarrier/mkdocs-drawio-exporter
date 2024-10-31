@@ -1,3 +1,6 @@
+# Direnv
+/.direnv/
+
 # Python virtual environment
 /venv/
 
