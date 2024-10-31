@@ -8,15 +8,15 @@ Exports your Draw.io diagrams at build time for easier embedding into your docum
 
 First install the package:
 
-```
-$ pip install mkdocs-drawio-exporter
+```shell
+pip install mkdocs-drawio-exporter
 ```
 
 Then enable it:
 
 ```yaml
 plugins:
-    - drawio-exporter
+  - drawio-exporter
 ```
 
 ## Configuration
@@ -25,40 +25,40 @@ For the default configuration, just add the plugin to the `plugins` key:
 
 ```yaml
 plugins:
-    - drawio-exporter
+  - drawio-exporter
 ```
 
 You can override the default configuration; values shown are defaults:
 
 ```yaml
 plugins:
-    - drawio-exporter:
-        # Diagrams are cached to speed up site generation. The default path is
-        # drawio-exporter, relative to the documentation directory.
-        cache_dir: 'drawio-exporter'
-        # Path to the Draw.io executable:
-        #   * drawio on Linux
-        #   * draw.io on macOS
-        #   * or draw.io.exe on Windows
-        # We'll look for it on your system's PATH, then default installation
-        # paths. If we can't find it we'll warn you.
-        drawio_executable: null
-        # Additional Draw.io CLI args
-        #   * --embed-svg-images will embed external images in SVGS, if format is "svg".
-        drawio_args: []
-        # Output format (see draw.io --help | grep format)
-        format: svg
-        # Embed format
-        #   * The default is to embed via the <img> tag, only rewriting the
-        #     value of the src attribute.
-        #   * Consider <object type="image/svg+xml" data="{img_src}"></object>
-        #     to enable interactive elements (like hyperlinks) in SVGs.
-        #   * Consider {content} to inline SVGs into documents directly, useful
-        #     for styling with CSS, preserving interactivity, and improving
-        #     search by indexing diagram text.
-        embed_format: '{img_open}{img_src}{img_close}'
-        # Glob pattern for matching source files
-        sources: '*.drawio'
+  - drawio-exporter:
+      # Diagrams are cached to speed up site generation. The default path is
+      # drawio-exporter, relative to the documentation directory.
+      cache_dir: 'drawio-exporter'
+      # Path to the Draw.io executable:
+      #   * drawio on Linux
+      #   * draw.io on macOS
+      #   * or draw.io.exe on Windows
+      # We'll look for it on your system's PATH, then default installation
+      # paths. If we can't find it we'll warn you.
+      drawio_executable: null
+      # Additional Draw.io CLI args
+      #   * --embed-svg-images will embed external images in SVGS, if format is "svg".
+      drawio_args: []
+      # Output format (see draw.io --help | grep format)
+      format: svg
+      # Embed format
+      #   * The default is to embed via the <img> tag, only rewriting the
+      #     value of the src attribute.
+      #   * Consider <object type="image/svg+xml" data="{img_src}"></object>
+      #     to enable interactive elements (like hyperlinks) in SVGs.
+      #   * Consider {content} to inline SVGs into documents directly, useful
+      #     for styling with CSS, preserving interactivity, and improving
+      #     search by indexing diagram text.
+      embed_format: '{img_open}{img_src}{img_close}'
+      # Glob pattern for matching source files
+      sources: '*.drawio'
 ```
 
 ## Usage
@@ -87,13 +87,13 @@ In addition to the above, if you're running in a headless environment (e.g. in i
 
 On Debian and Ubuntu, the following should install the dependencies:
 
-```console
+```shell
 sudo apt install libasound2 xvfb
 ```
 
 To run MkDocs with an automatically assigned X display, wrap the command as follows:
 
-```console
+```shell
 xvfb-run -a mkdocs build
 ```
 
@@ -109,65 +109,65 @@ If possible, consider running MkDocs as a non-privileged user. Depending on the 
 
 ```yaml
 plugins:
-    - drawio-exporter:
-        drawio_args:
-            - --no-sandbox
+  - drawio-exporter:
+      drawio_args:
+        - --no-sandbox
 ```
 
 ## Hacking
 
 To get completion working in your editor, set up a virtual environment in the root of this repository and install MkDocs:
 
-```
-$ pip3 install --user --upgrade wheel
-$ pipx install twine
-$ poetry install
+```shell
+pip3 install --user --upgrade wheel
+pipx install twine
+poetry install
 ```
 
 To install the plugin onto a local MkDocs site in editable form:
 
-```
-$ poetry add --editable /path/to/mkdocs-drawio-exporter
+```shell
+poetry add --editable /path/to/mkdocs-drawio-exporter
 ```
 
 Note that you'll need to repeat this step if you make any changes to the `[tool.poetry.plugins.*]` sections listed in `pyproject.toml`.
 
 Run the tests with the `test` script:
 
-```
-$ poetry run test
+```shell
+poetry run test
 ```
 
 ## Upgrading dependencies
 
 To upgrade the dependencies, first make any necessary changes to the constraints expressed in the `[tool.poetry.dependencies]` section of `pyproject.toml`, then have Poetry update them:
 
-```
-$ poetry update
+```shell
+poetry update
 ```
 
 ## Releasing
 
 Build the distributable package:
 
-```
-$ poetry build
+```shell
+poetry build
 ```
 
 Push it to the PyPI test instance:
 
-```
-$ twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+```shell
+twine upload --repository-url https://test.pypi.org/legacy/ dist/*
 ```
 
 Test it inside a virtual environment:
 
-```
-$ pip install --index-url https://test.pypi.org/simple/ --no-deps mkdocs-drawio-exporter
+```shell
+pip install --index-url https://test.pypi.org/simple/ --no-deps mkdocs-drawio-exporter
 ```
 
 Let's go live:
 
-```
-$ twine upload dist/*
+```shell
+twine upload dist/*
 ```
