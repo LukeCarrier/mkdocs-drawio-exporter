@@ -1,8 +1,9 @@
 site_name: mkdocs-drawio-exporter example
 plugins:
   - search
+  - glightbox
   - drawio-exporter:
-      embed_format: "{content}"
+      format: svg
       drawio_args: [--no-sandbox, --disable-gpu]
 
 nav:
