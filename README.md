@@ -49,14 +49,13 @@ plugins:
       # Output format (see draw.io --help | grep format)
       format: svg
       # Embed format
-      #   * The default is to embed via the <img> tag, only rewriting the
-      #     value of the src attribute.
+      #   * The default is to embed via the <img> tag.
       #   * Consider <object type="image/svg+xml" data="{img_src}"></object>
       #     to enable interactive elements (like hyperlinks) in SVGs.
       #   * Consider {content} to inline SVGs into documents directly, useful
       #     for styling with CSS, preserving interactivity, and improving
       #     search by indexing diagram text.
-      embed_format: '{img_open}{img_src}{img_close}'
+      embed_format: '<img alt="{img_alt}" src="{img_src}">'
       # Glob pattern for matching source files
       sources: '*.drawio'
 ```
