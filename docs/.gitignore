@@ -1,0 +1,5 @@
+# mkdocs-drawio-exporter
+/docs/drawio-exporter/
+
+# Python virtual environment
+/venv/

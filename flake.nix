@@ -13,7 +13,12 @@
         pkgs = import nixpkgs { inherit system; };
       in
         pkgs.mkShell {
-          packages = with pkgs; [ python313 python312Packages.python-lsp-server ];
+          packages = with pkgs; [
+            drawio
+            poetry
+            python312
+            python312Packages.python-lsp-server
+          ];
         };
   });
 }
