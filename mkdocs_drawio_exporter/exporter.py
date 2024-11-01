@@ -12,7 +12,7 @@ from typing import TypedDict
 import urllib.parse
 
 
-IMAGE_RE = re.compile('(<img[^>]+src=")([^">]+)("\\s*\\/?>)')
+IMAGE_RE = re.compile(r'!\[(?P<alt>[^\]]*)\]\((?P<filename>[^\)]*)\)')
 
 
 class Configuration(TypedDict):
@@ -262,12 +262,13 @@ class DrawIoExporter:
 
         def replace(match):
             try:
-                filename, page_index = match.group(2).rsplit('#', 1)
+                filename, page_index = match.group('filename').rsplit('#', 1)
             except ValueError:
-                filename = match.group(2)
+                filename = match.group('filename')
                 page_index = 0
+            img_alt = match.group('alt')
 
-            if fnmatch.fnmatch(filename, config["sources"]):
+            if fnmatch.fnmatch(filename, config['sources']):
                 source = Source(filename, page_index)
                 source.resolve_rel_path(page_dest_path)
                 content_sources.append(source)
@@ -276,7 +277,7 @@ class DrawIoExporter:
                 # Cache the file on-demand and read file content only if we
                 # need to inline the file's content.
                 content = None
-                if "{content}" in config["embed_format"]:
+                if '{content}' in config['embed_format']:
                     img_path = self.make_cache_filename(
                             source.source_rel, page_index, config['cache_dir'])
 
@@ -289,12 +290,11 @@ class DrawIoExporter:
                         self.log.error(f'Export failed with exit status {exit_status}; skipping rewrite')
                         return match.group(0)
 
-                    with open(img_path, "r") as f:
+                    with open(img_path, 'r') as f:
                         content = f.read()
 
-                return config["embed_format"].format(
-                        img_open=match.group(1), img_close=match.group(3),
-                        img_src=img_src, content=content)
+                return config['embed_format'].format(
+                        img_alt=img_alt, img_src=img_src, content=content)
             else:
                 return match.group(0)
         output_content = IMAGE_RE.sub(replace, output_content)

@@ -25,7 +25,7 @@ class DrawIoExporterPlugin(mkdocs.plugins.BasePlugin):
         ('drawio_executable', config_options.Type(str)),
         ('drawio_args', config_options.Type(list, default=[])),
         ('format', config_options.Type(str, default='svg')),
-        ('embed_format', config_options.Type(str, default='{img_open}{img_src}{img_close}')),
+        ('embed_format', config_options.Type(str, default='<img alt="{img_alt}" src="{img_src}">')),
         ('sources', config_options.Type(str, default='*.drawio')),
     )
 
@@ -53,9 +53,9 @@ class DrawIoExporterPlugin(mkdocs.plugins.BasePlugin):
                 f'arguments {self.config["drawio_args"]} and '
                 f'cache directory "{self.config["cache_dir"]}"')
 
-    def on_page_markdown(self, output_content, page, **kwargs):
+    def on_page_markdown(self, markdown, page, **kwargs):
         output_content, content_sources = self.exporter.rewrite_image_embeds(
-                page.file.dest_path, output_content, self.config)
+                page.file.dest_path, markdown, self.config)
 
         self.sources += content_sources
 
