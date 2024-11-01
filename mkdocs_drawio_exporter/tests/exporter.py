@@ -34,7 +34,7 @@ class ExporterTests(unittest.TestCase):
             'drawio_executable': 'drawio',
             'drawio_args': [],
             'format': 'svg',
-            'embed_format': '{img_open}{img_src}{img_close}',
+            'embed_format': '<img alt="{img_alt}" src="{img_src}">',
             'sources': '*.drawio',
         }
         # FIXME: when dropping support for Python 3.8, replace with the merge
@@ -103,8 +103,9 @@ class ExporterTests(unittest.TestCase):
 
     def test_rewrite_image_embeds(self):
         page_dest_path = "index.html"
-        source = '''<h1>Example text</h1>
-<img alt="Some text" src="../some-diagram.drawio" />'''
+        source = '''# Example text
+
+![Some text](../some-diagram.drawio)'''
         object_embed_format = '<object type="image/svg+xml" data="{img_src}"></object>'
 
         exporter = self.make_exporter()
