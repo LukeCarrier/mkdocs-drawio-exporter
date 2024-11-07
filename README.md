@@ -121,7 +121,7 @@ To get completion working in your editor, set up a virtual environment in the ro
 ```shell
 pip3 install --user --upgrade wheel
 pipx install twine
-poetry install
+poetry install --with dev
 ```
 
 To install the plugin onto a local MkDocs site in editable form:
