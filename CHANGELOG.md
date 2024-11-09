@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.10.0: improve compatibility with other plugins
+
+* Rewrite image embeds in `on_page_markdown`
+  * Breaking change: `embed_format` no longer provides `{img_open}` and `{img_close}`
+* Dependency version bumps
+* Document functional Docker example
+* Nix dev shell for easier development setup
+* Linting via Ruff
+
 ## 0.9.1: maintainer guilt 2: break the world boogaloo
 
 * Test the most crusty Python version we claim to support
