@@ -116,11 +116,21 @@ plugins:
 
 ## Hacking
 
+Optionally, use [Nix](https://nix.dev/) for a development shell with all the necessary dependencies:
+
+```shell
+nix develop
+```
+
+We use [Poetry](https://python-poetry.org/) for dependency management:
+
+```shell
+poetry install
+```
+
 To get completion working in your editor, set up a virtual environment in the root of this repository and install MkDocs:
 
 ```shell
-pip3 install --user --upgrade wheel
-pipx install twine
 poetry install --with dev
 ```
 

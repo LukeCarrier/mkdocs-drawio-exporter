@@ -7,18 +7,22 @@
   };
 
   outputs = { flake-utils, nixpkgs, ... }:
-  flake-utils.lib.eachDefaultSystem (system: {
+  flake-utils.lib.eachDefaultSystem (system: rec {
     devShells.default =
       let
         pkgs = import nixpkgs { inherit system; };
-      in
-        pkgs.mkShell {
-          packages = with pkgs; [
-            drawio
-            poetry
-            python312
-            python312Packages.python-lsp-server
+        fhs = pkgs.buildFHSUserEnv {
+          name = "fhs-shell";
+          targetPkgs = pkgs: [
+            pkgs.drawio
+            pkgs.nil
+            pkgs.poetry
+            pkgs.python312
+            pkgs.python312Packages.python-lsp-server
           ];
+          runScript = "bash";
         };
+      in
+        fhs.env;
   });
 }
