@@ -188,7 +188,7 @@ class ExporterTests(unittest.TestCase):
         _, exit_status = exporter.ensure_file_cached(
                 source, source_rel, 0, config)
 
-        assert exit_status == None
+        assert exit_status is None
         self.log.warning.assert_called_once()
 
     def test_ensure_file_cached_skips_export_if_cache_fresh(self):
@@ -216,7 +216,7 @@ class ExporterTests(unittest.TestCase):
                 source, source_rel, 0, config)
 
         assert cache_filename == exporter.make_cache_filename.return_value
-        assert exit_status == None
+        assert exit_status is None
         exporter.use_cached_file.assert_called_once()
         assert not exporter.export_file.called
 
@@ -283,7 +283,7 @@ class ExporterTests(unittest.TestCase):
         getmtime_mock.side_effect = getmtime_return_value
 
         result = exporter.use_cached_file(source, cache_filename)
-        assert result == False
+        assert not result
 
     @patch('subprocess.call')
     def test_export_file(self, call_mock):
@@ -322,7 +322,7 @@ class ExporterTests(unittest.TestCase):
         result = exporter.export_file(
                 source, 0, dest, config)
 
-        assert result == None
+        assert result is None
         self.log.exception.assert_called_once()
         call_mock.assert_called_once()
 
