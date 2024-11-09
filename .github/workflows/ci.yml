@@ -81,7 +81,11 @@ jobs:
           cache: poetry
           python-version: "${{ matrix.python }}"
 
+      - name: Install dependencies
+        run: poetry install --with dev
+
       - name: Run tests
-        run: |
-          poetry install
-          poetry run test
+        run: poetry run test
+
+      - name: Lint
+        run: poetry run ruff check
