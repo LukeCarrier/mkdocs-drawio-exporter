@@ -383,5 +383,5 @@ class DrawIoExporter:
         try:
             self.log.debug(f'Using export command {cmd}')
             return subprocess.call(cmd)
-        except:
+        except (OSError, subprocess.CalledProcessError):
             self.log.exception('Subprocess raised exception')

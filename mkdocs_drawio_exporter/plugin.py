@@ -7,7 +7,7 @@ import mkdocs.plugins
 from mkdocs.structure.files import Files
 from mkdocs.utils import copy_file
 
-from .exporter import ConfigurationError, DrawIoExporter, Configuration
+from .exporter import ConfigurationError, DrawIoExporter
 
 
 log = mkdocs.plugins.log.getChild('drawio-exporter')
