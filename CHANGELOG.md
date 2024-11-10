@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.1: fix diagram source path generation
+
+* Compute diagram source paths relative to source, not dest, path
+
 ## 0.10.0: improve compatibility with other plugins
 
 * Rewrite image embeds in `on_page_markdown`
