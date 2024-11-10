@@ -5,7 +5,7 @@ import logging
 import os
 from os.path import join, sep
 
-from ..exporter import Configuration, ConfigurationError, DrawIoExporter
+from ..exporter import Configuration, ConfigurationError, DrawIoExporter, Source
 
 
 class FileMock:
@@ -17,12 +17,25 @@ class FileMock:
             setattr(self, attr, value)
 
 
+class SourceTests(unittest.TestCase):
+    def test_resolve_rel_path(self):
+        cases = [
+            ("dir/diagram.drawio", ("diagram.drawio", 0), "dir/page.md"),
+            ("dir1/dir2/diagram.drawio", ("diagram.drawio", 0), "dir1/dir2/index.md"),
+            ("dir1/dir2/dir3/diagram.drawio", ("diagram.drawio", 0), "dir1/dir2/dir3/index.md"),
+        ]
+        for expect, source_args, page_src_path in cases:
+            with self.subTest(expect, source_args, page_src_path):
+                source = Source(*source_args)
+                result = source.resolve_rel_path(page_src_path)
+                self.assertEqual(expect, result)
+
+
 class ExporterTests(unittest.TestCase):
     log = None
 
     def setUp(self):
         self.log = logging.getLogger(__name__)
-
     def make_exporter(self, docs_dir=None):
         if not docs_dir:
             docs_dir = sep + 'docs'
