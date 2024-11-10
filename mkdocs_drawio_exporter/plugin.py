@@ -55,7 +55,7 @@ class DrawIoExporterPlugin(mkdocs.plugins.BasePlugin):
 
     def on_page_markdown(self, markdown, page, **kwargs):
         output_content, content_sources = self.exporter.rewrite_image_embeds(
-                page.file.dest_path, markdown, self.config)
+                page.file.src_path, markdown, self.config)
 
         self.sources += content_sources
 

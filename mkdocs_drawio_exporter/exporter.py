@@ -126,14 +126,14 @@ class Source:
     def __repr__(self):
         return f"Source({self.source_embed}, {self.page_index}, {self.source_rel})"
 
-    def resolve_rel_path(self, page_dest_path):
+    def resolve_rel_path(self, page_src_path):
         """Resolve the path of the source, relative to the documentation directory.
 
-        :param str page_dest_path: The destination path of the parent page.
+        :param str page_src_path: The source path of the parent page.
         """
         unescaped_source_embed = urllib.parse.unquote(self.source_embed)
         self.source_rel = os.path.normpath(os.path.join(
-                os.path.dirname(page_dest_path),
+                os.path.dirname(page_src_path),
                 unescaped_source_embed))
 
 
@@ -248,7 +248,7 @@ class DrawIoExporter:
                     'embed_format', config['embed_format'],
                     'cannot inline content of non-SVG format')
 
-    def rewrite_image_embeds(self, page_dest_path, output_content, config: Configuration):
+    def rewrite_image_embeds(self, page_src_path, output_content, config: Configuration):
         """Rewrite image embeds.
 
         :param str page_dest_path: Destination path.
@@ -270,7 +270,7 @@ class DrawIoExporter:
 
             if fnmatch.fnmatch(filename, config['sources']):
                 source = Source(filename, page_index)
-                source.resolve_rel_path(page_dest_path)
+                source.resolve_rel_path(page_src_path)
                 content_sources.append(source)
                 img_src = f"{filename}-{page_index}.{config['format']}"
 
