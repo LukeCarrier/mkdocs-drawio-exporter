@@ -156,14 +156,22 @@ class DrawIoExporter:
     :type str:
     """
 
-    def __init__(self, log, docs_dir):
+    use_directory_urls = None
+    """Draw.io use_directory_urls.
+
+    :type bool:
+    """
+
+    def __init__(self, log, docs_dir, use_directory_urls):
         """Initialise.
 
         :param logging.Logger log: Where to log.
         :param str docs_dir: MkDocs docs_dir.
+        :param bool use_directory_urls: MkDocs use_directory_urls.
         """
         self.log = log
         self.docs_dir = docs_dir
+        self.use_directory_urls = use_directory_urls
 
     DRAWIO_EXECUTABLE_NAMES = ['drawio', 'draw.io']
     """Draw.io executable names."""
@@ -248,10 +256,13 @@ class DrawIoExporter:
                     'embed_format', config['embed_format'],
                     'cannot inline content of non-SVG format')
 
-    def rewrite_image_embeds(self, page_src_path, output_content, config: Configuration):
+    def rewrite_image_embeds(
+                self, page_src_path, is_index, output_content,
+                config: Configuration):
         """Rewrite image embeds.
 
         :param str page_dest_path: Destination path.
+        :param bool is_index: Is the output file an index?
         :param str output_content: Content to rewrite.
         :param str sources: Glob to match Draw.io diagram filenames.
         :param str format: Desired export format.
@@ -273,6 +284,8 @@ class DrawIoExporter:
                 source.resolve_rel_path(page_src_path)
                 content_sources.append(source)
                 img_src = f"{filename}-{page_index}.{config['format']}"
+                if self.use_directory_urls and not is_index:
+                    img_src = f'../{img_src}'
 
                 # Cache the file on-demand and read file content only if we
                 # need to inline the file's content.

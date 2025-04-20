@@ -34,7 +34,8 @@ class DrawIoExporterPlugin(mkdocs.plugins.BasePlugin):
     sources = []
 
     def on_config(self, config, **kwargs):
-        self.exporter = DrawIoExporter(log, config['docs_dir'])
+        self.exporter = DrawIoExporter(
+                log, config['docs_dir'], config['use_directory_urls'])
 
         self.config['cache_dir'] = self.exporter.prepare_cache_dir(
                 self.config['cache_dir'])
@@ -55,7 +56,7 @@ class DrawIoExporterPlugin(mkdocs.plugins.BasePlugin):
 
     def on_page_markdown(self, markdown, page, **kwargs):
         output_content, content_sources = self.exporter.rewrite_image_embeds(
-                page.file.src_path, markdown, self.config)
+                page.file.src_path, page.is_index, markdown, self.config)
 
         self.sources += content_sources
 

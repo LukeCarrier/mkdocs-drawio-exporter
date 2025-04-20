@@ -36,10 +36,13 @@ class ExporterTests(unittest.TestCase):
 
     def setUp(self):
         self.log = logging.getLogger(__name__)
-    def make_exporter(self, docs_dir=None):
+
+    def make_exporter(self, docs_dir=None, use_directory_urls=None):
         if not docs_dir:
             docs_dir = sep + 'docs'
-        return DrawIoExporter(self.log, docs_dir)
+        if not use_directory_urls:
+            use_directory_urls = True
+        return DrawIoExporter(self.log, docs_dir, use_directory_urls)
 
     def make_config(self, **kwargs):
         defaults = {
@@ -115,32 +118,42 @@ class ExporterTests(unittest.TestCase):
             exporter.prepare_drawio_executable(None, [], [])
 
     def test_rewrite_image_embeds(self):
-        page_dest_path = "index.html"
+        exporter = self.make_exporter()
         source = '''# Example text
 
 ![Some text](../some-diagram.drawio)'''
-        object_embed_format = '<object type="image/svg+xml" data="{img_src}"></object>'
 
-        exporter = self.make_exporter()
+        page_dest_path = "index.html"
+        is_index = True
 
         config = self.make_config(sources='*.nomatch')
         output_content, sources = exporter.rewrite_image_embeds(
-                page_dest_path, source, config)
+                page_dest_path, is_index, source, config)
         assert output_content == source
         assert sources == []
 
         config = self.make_config()
         output_content, sources = exporter.rewrite_image_embeds(
-                page_dest_path, source, config)
+                page_dest_path, is_index, source, config)
         assert output_content != source
         assert 'src="../some-diagram.drawio-0.svg"' in output_content
         assert len(sources) == 1
 
+        object_embed_format = '<object type="image/svg+xml" data="{img_src}"></object>'
         config = self.make_config(embed_format=object_embed_format)
         output_content, sources = exporter.rewrite_image_embeds(
-                page_dest_path, source, config)
+                page_dest_path, is_index, source, config)
         assert output_content != source
         assert '<object type="image/svg+xml" data="../some-diagram.drawio-0.svg"></object>' in output_content
+        assert len(sources) == 1
+
+        page_dest_path = "subdir/index.html"
+        is_index = False
+        config = self.make_config()
+        output_content, sources = exporter.rewrite_image_embeds(
+                page_dest_path, is_index, source, config)
+        assert output_content != source
+        assert 'src="../../some-diagram.drawio-0.svg"' in output_content
         assert len(sources) == 1
 
     def test_filter_cache_files(self):
