@@ -18,6 +18,7 @@
             pkgs.nil
             pkgs.poetry
             pkgs.python312
+            pkgs.python312Packages.pip
             pkgs.python312Packages.python-lsp-server
           ];
           runScript = "bash";
