@@ -1,4 +1,4 @@
-name: CI
+name: CI (native)
 
 on:
   push:
@@ -47,7 +47,7 @@ jobs:
           drawio_url="https://github.com/jgraph/drawio-desktop/releases/download/v${{ matrix.drawio-version }}/drawio-${{ matrix.drawio-arch }}-${{ matrix.drawio-version }}.deb"
           curl -L -o "$drawio_deb" "$drawio_url"
           sha256sum --check <<<"${{ matrix.drawio-sha256sum }}  $drawio_deb"
-          sudo apt-get install -y libasound2 xvfb ./"$drawio_deb"
+          sudo apt-get install -y libasound2t64 xvfb ./"$drawio_deb"
       - name: Install Draw.io Desktop (macOS)
         if: runner.os == 'macOS'
         run: brew install drawio

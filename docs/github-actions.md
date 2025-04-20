@@ -79,7 +79,7 @@ jobs:
 
           curl -L -o "$drawio_deb" "$drawio_url"
           sha256sum --check <<<"${drawio_sha256sum}  $drawio_deb"
-          sudo apt-get install -y libasound2 xvfb ./"$drawio_deb"
+          sudo apt-get install -y libasound2t64 xvfb ./"$drawio_deb"
       - name: Install Python dependencies
         run: poetry install
       - name: Build
