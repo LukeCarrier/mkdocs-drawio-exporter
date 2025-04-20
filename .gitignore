@@ -11,3 +11,8 @@ __pycache__/
 /*.egg-info/
 /build/
 /dist/
+
+# Example
+/docs/docs/drawio-exporter/
+/docs/site/
+/docs/docker-compose.local.yml

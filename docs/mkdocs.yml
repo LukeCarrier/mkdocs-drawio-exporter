@@ -7,4 +7,7 @@ plugins:
       drawio_args: [--no-sandbox, --disable-gpu]
 
 nav:
-  - Overview: README.md
+  - Index: index.md
+  - My page: my-page.md
+  - My folder index: my-folder/index.md
+  - My folder my page: my-folder/my-page.md
