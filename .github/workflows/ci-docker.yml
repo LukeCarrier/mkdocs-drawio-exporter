@@ -1,0 +1,37 @@
+name: CI (Docker)
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    timeout-minutes: 10
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Docker Compose
+        uses: docker/setup-compose-action@v1
+      - name: Build images
+        run: |
+          cat <<EOF >docker-compose.local.yml
+          services:
+            mkdocs:
+              build:
+                args:
+                  mkdocs_uid: $(id -u)
+                  mkdocs_gid: $(id -g)
+          EOF
+          docker compose -f docker-compose.yml -f docker-compose.local.yml build mkdocs_build
+          docker compose -f docker-compose.yml -f docker-compose.local.yml build mkdocs
+        working-directory: docs
+      - name: Test local image
+        run: docker compose run --rm mkdocs -- build
+        working-directory: docs
