@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.2: fix diagram source path generation with use_directory_urls for non-index pages
+
+* Navigate up an additional parent directory for non-index files when `use_directory_urls` is enabled (the default); props @Thiti517
+* Make example container image compatible with Docker rootless
+* Actions workflow example now installs libasound{ => t64 }
+
 ## 0.10.1: fix diagram source path generation
 
 * Compute diagram source paths relative to source, not dest, path

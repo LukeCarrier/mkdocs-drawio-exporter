@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "mkdocs-drawio-exporter"
-version = "0.10.1"
+version = "0.10.2"
 description = "Exports your Draw.io diagrams at build time for easier embedding into your documentation"
 readme = "README.md"
 license = "MIT"
