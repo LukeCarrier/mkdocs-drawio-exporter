@@ -21,7 +21,7 @@ python-lsp-jsonrpc==1.1.2
 python-lsp-server==1.11.0
 PyYAML==6.0.1
 pyyaml_env_tag==0.1
-setuptools==70.0.0
+setuptools==78.1.1
 six==1.16.0
 tornado==6.4.2
 ujson==5.9.0
